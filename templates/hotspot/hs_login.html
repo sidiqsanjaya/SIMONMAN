@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title>EWEB Management System</title>
+  <meta content="" name="description">
+  <meta content="" name="keywords">
+
+  <!-- Favicons -->
+  <link href="/static/image/cover.jpg" rel="icon">
+
+  <!-- Vendor CSS Files -->
+  <link href="/static/vendor/bootstrap/css/bootstrap.css" rel="stylesheet">
+  <!-- Template Main CSS File -->
+  <link href="/static/css/style.css" rel="stylesheet">
+  <style>
+    .password-container {
+        position: relative;
+    }
+    #passwordField {
+        padding-right: 30px;
+    }
+    .password-toggle-icon {
+        position: absolute;
+        top: 50%;
+        right: 10px;
+        transform: translateY(0%);
+        cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main>
+    <div class="container">
+
+      <section class="section register min-vh-100 d-flex flex-column align-items-center justify-content-center py-4">
+        <div class="container">
+          <div class="row justify-content-center">
+            <div class="col-lg-4 col-md-6 d-flex flex-column align-items-center justify-content-center">
+
+              <div class="d-flex justify-content-center py-4">
+                <a class="logo d-flex align-items-center w-auto">
+                  <img src="/static/image/cover.jpg" alt="">
+                  <span class="d-none d-lg-block">NiceAdmin</span>
+                </a>
+              </div><!-- End Logo -->
+
+              <div class="card mb-3">
+
+                <div class="card-body">
+
+                  <div class="pt-4 pb-2">
+                    <h5 class="card-title text-center pb-0 fs-4">Login to Your Account Hotspot</h5>
+                  </div>
+                  
+                  {% if error != True %}
+                  <div class="alert alert-warning bg-warning border-0" role="alert">
+                    <center class="text-capitalize font-weight-bold"><b>{{error}}</b></center>
+                  </div>
+                  {% endif %}
+                  <form action="/hotspot/login" method="POST">
+
+                    <div class="col-12">
+                      <label for="yourUsername" class="form-label">Username</label>
+                      <div class="input-group has-validation">
+                        <input type="text" name="username" class="form-control" required="" id="yourUsername">
+                        <div class="invalid-feedback">Please enter your username.</div>
+                      </div>
+                    </div>
+                    <input type="hidden" name="fas" value="{{fas}}">
+                    <div class="col-12 password-container">
+                      <label for="yourPassword" class="form-label">Password</label>
+                      <input type="password" name="password" class="form-control" required="" id="yourPassword">
+                      <span id="passwordToggle" class="password-toggle-icon" onclick="togglePasswordVisibility()">
+                        <span id="showPassword" style="display: none;">close</span>
+                        <span id="hidePassword">check</span>
+                      </span>
+                      <div class="invalid-feedback">Please enter your password!</div>
+                    </div>
+
+                    <div class="col-12">
+                      <label for="" class="form-label"></label>
+                      <button class="btn btn-primary w-100" type="submit">Login</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+    <script>
+      const passwordField = document.getElementById("yourPassword");
+      const showPasswordIcon = document.getElementById("showPassword");
+      const hidePasswordIcon = document.getElementById("hidePassword");
+
+      function togglePasswordVisibility() {
+          if (passwordField.type === "password") {
+              passwordField.type = "text";
+              showPasswordIcon.style.display = "inline";
+              hidePasswordIcon.style.display = "none";
+          } else {
+              passwordField.type = "password";
+              showPasswordIcon.style.display = "none";
+              hidePasswordIcon.style.display = "inline";
+          }
+      }
+    </script>
+  </main><!-- End #main -->
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+  <!-- Vendor JS Files -->
+  <script src="/static//vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Template Main JS File -->
+  <script src="/static/js/main.js"></script>
+
+</body>
+
+</html>

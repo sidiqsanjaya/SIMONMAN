@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+{% include '/fe/head.html'%}
+
+<body>
+  {% include '/fe/header.html'%}
+  {% include '/fe/sidebar.html'%}
+  
+  <main id="main" class="main">
+    <section class="section dashboard">
+      <div class="card">
+        <div class="card-body pt-3">
+            <h5 class="card-title">Online Clients</h5>
+            <table class="table datatable table-striped text-center">
+                <thead>
+                  <tr>
+                    <th scope="col">Hostname</th>
+                    <th scope="col">Ip</th>
+                    <th scope="col">Mac Address</th>
+                    <th scope="col">Renew On</th>
+                    <!-- <th scope="col">Action</th> -->
+                  </tr>
+                </thead>
+                <tbody>
+                {% for item in data %}
+                  <tr>
+                    <th scope="row">{{item['hostname']}}</th>
+                    <td>{{item['ip_address']}}</td>
+                    <td>{{item['mac_address']}}</td>
+                    <td>{{item['timestamp']}}</td>
+                    <!-- <td>
+                        <form action="/hotspot/user" method="POST">
+                            <input type="hidden" name="ip" value="{{item['ip_address']}}">
+                            <input type="hidden" name="mac" value="{{item['mac_address']}}">
+                            <input type="hidden" name="name" value="{{item['hostname']}}">
+                            <button class="btn btn-primary" type="submit">Set Static</button>
+                        </form>
+                    </td> -->
+                  </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+        </div>
+      </div>
+
+    </section>
+
+  </main><!-- End #main -->
+
+</body>
+{% include '/fe/footer.html' %}
+</html>

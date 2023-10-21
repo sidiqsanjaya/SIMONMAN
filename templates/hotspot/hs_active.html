@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+{% include '/fe/head.html'%}
+
+<body>
+  {% include '/fe/header.html'%}
+  {% include '/fe/sidebar.html'%}
+  
+  <main id="main" class="main">
+    <section class="section dashboard">
+      <div class="card">
+        <div class="card-body pt-3">
+            <h5 class="card-title">Hotspot User Profile</h5>
+            <table class="table datatable table-striped" id="table">
+                <thead> 
+                    <tr>
+                      <th scope="col">State</th>
+                      <th scope="col">Ip Address</th>
+                      <th scope="col">Mac Address</th>
+                      <th scope="col">Username</th>
+                      <th scope="col">Type</th>
+                      <th scope="col">Rate</th>
+                      <th scope="col">Session</th>
+                      <th scope="col">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for mac, item in data['clients'].items() %}
+                    <tr>
+                      <td>{{item['state']}}</td>
+                      <td>{{item['ip']}}</td>
+                      <td>{{mac}}</td>
+                      <td>{{item['custom']['username']}}</td>
+                      <td>{{item['custom']['tipe']}}</td>
+                      <td><ul class="list-group list-group-flush">
+                        <li class="list-group-item">Down: {{item['download_rate_limit_threshold']}}</li>
+                        <li class="list-group-item">Upload: {{item['upload_rate_limit_threshold']}}</li>
+                      </ul></td>
+                      <td><ul class="list-group list-group-flush">
+                        <li class="list-group-item">Start: {{item['session_start']}}</li>
+                        <li class="list-group-item">Last: {{item['last_active']}}</li>
+                        <li class="list-group-item">End: {{item['session_end']}}</li>
+                      </ul></td>
+                      <td>
+                        <form action="/hotspot/active" method="POST">
+                          <input type="hidden" name="mac" value="{{mac}}">
+                          <button class="btn btn-danger" type="submit">Kick</button>
+                        </form>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+      </div>
+
+    </section>
+
+  </main><!-- End #main -->
+
+</body>
+{% include '/fe/footer.html' %}
+
+</html>

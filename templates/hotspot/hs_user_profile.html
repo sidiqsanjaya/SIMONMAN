@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+{% include '/fe/head.html'%}
+
+<body>
+  {% include '/fe/header.html'%}
+  {% include '/fe/sidebar.html'%}
+  
+  <main id="main" class="main">
+    <section class="section dashboard">
+      <div class="card">
+        <div class="card-body pt-3">
+            <h5 class="card-title">Hotspot User Profile</h5>
+            <button class="btn btn-primary" id="modal" data-toggle="modal">Add</button>
+            <table class="table datatable" id="table">
+                <thead> 
+                  <tr>
+                    <th scope="col">Tipe</th>
+                    <th scope="col">Session</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Download Rate</th>
+                    <th scope="col">Download Qouta</th>
+                    <th scope="col">Upload Rate</th>
+                    <th scope="col">Upload Qouta</th>
+                    <th scope="col">Aksi</th>
+                    <th scope="col">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in data %}
+                  <tr>
+                    <td contenteditable="true">{{item['tipe']}}</td>
+                    <td contenteditable="true">{{item['session']}}</td>
+                    <td contenteditable="true">{{item['status']}}</td>
+                    <td contenteditable="true">{{item['down_rate']}}</td>
+                    <td contenteditable="true">{{item['down_qouta']}}</td>
+                    <td contenteditable="true">{{item['up_rate']}}</td>
+                    <td contenteditable="true">{{item['up_qouta']}}</td>
+                    <td><button class="btn btn-info" data-toggle="modal">Edit</button></td>
+                    <td><button class="btn btn-danger" data-toggle="modal">Hapus</button></td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+            </table>
+        </div>
+      </div>
+      <!-- Modal untuk menampilkan detail data -->
+<div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="detailModalLabel" id="tipe"></h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form action="/hotspot/profile" method="POST">
+              <div class="row mb-3">
+                <label for="inputText" class="col-sm-2 col-form-label">Type</label>
+                <div class="col-sm-10">
+                  <input type="hidden" name="mode" id="mode">
+                  <input type="hidden" name="tipe2" id="tipe2">
+                  <input type="text" name="tipe" id="tipe" required="" class="form-control" placeholder="Type the User">
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="inputText" class="col-sm-2 col-form-label">Status</label>
+                <div class="col-sm-10">
+                  <select class="form-select" name="status" id="status" required="" aria-label="Default select example">
+                    <option value="" selected>Select User profile Status</option>
+                    <option value="Disable">Disable</option>
+                    <option value="Enable">Enable</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="inputText" class="col-sm-2 col-form-label">Session</label>
+                <div class="col-sm-10">
+                  <input type="number" name="session" id="session" required="" min="0" class="form-control" placeholder="Per minute">
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="inputText" class="col-sm-2 col-form-label">Download Rate</label>
+                <div class="col-sm-10">
+                  <input type="number" name="down_rate" id="down_rate" required="" min="0" class="form-control" placeholder="Kbps">
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="inputText" class="col-sm-2 col-form-label">Download Qouta</label>
+                <div class="col-sm-10">
+                  <input type="number" name="down_qouta" id="down_qouta" required="" min="0" class="form-control" placeholder="Kbps">
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="inputText" class="col-sm-2 col-form-label">Upload Rate</label>
+                <div class="col-sm-10">
+                  <input type="number" name="up_rate" id="up_rate" required="" min="0" class="form-control" placeholder="Kbps">
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="inputText" class="col-sm-2 col-form-label">Upload Qouta</label>
+                <div class="col-sm-10">
+                  <input type="number" name="up_qouta" id="up_qouta" min="0" required="" class="form-control" placeholder="Kbps">
+                </div>
+              </div>
+              <div class="d-grid gap-2 mt-3">
+                <button class="btn" id="button" type="submit">Block Button</button>
+              </div>
+            </form>
+          </div>
+      </div>
+  </div>
+</div>
+    </section>
+
+  </main><!-- End #main -->
+
+</body>
+{% include '/fe/footer.html' %}
+<script>
+  // Fungsi untuk menangani peristiwa ketika tombol "Aksi" diklik
+  $(document).ready(function() {
+    $('#modal').click( function () {
+      var element = document.getElementById("button");
+          // Menampilkan data dalam modal
+          $('#detailModal').modal('show');
+          document.getElementById("mode").value = 'add';
+          element.innerHTML = 'add';
+          element.classList.remove('btn-danger');
+          element.classList.remove('btn-info');
+          element.classList.add('btn-primary');
+    })
+      $('#table tbody').on('click', 'button.btn-info', function () {
+          var rowData = $(this).closest('tr');
+          var tipe = rowData.find('td:eq(0)').text();
+          var session = rowData.find('td:eq(1)').text();
+          var status = rowData.find('td:eq(2)').text();
+          var down_rate = rowData.find('td:eq(3)').text();
+          var down_qouta = rowData.find('td:eq(4)').text();
+          var up_rate = rowData.find('td:eq(5)').text();
+          var up_qouta = rowData.find('td:eq(6)').text();
+          var element = document.getElementById("button");
+          // Menampilkan data dalam modal
+          $('#detailModal').modal('show');
+          document.getElementById("mode").value = 'edit';
+          document.getElementById("tipe").value =  tipe;
+          document.getElementById("tipe2").value =  tipe;
+          document.getElementById("session").value = session;
+          let stelement = document.getElementById('status');
+          stelement.value = status;
+          document.getElementById("down_rate").value = down_rate;
+          document.getElementById("down_qouta").value = down_qouta;
+          document.getElementById("up_rate").value = up_rate;
+          document.getElementById("up_qouta").value = up_qouta;
+          element.innerHTML = 'edit';
+          element.classList.remove('btn-danger');
+          element.classList.remove('btn-primary');
+          element.classList.add('btn-info');
+      });
+      $('#table tbody').on('click', 'button.btn-danger', function () {
+          var rowData = $(this).closest('tr');
+          var tipe = rowData.find('td:eq(0)').text();
+          var Session = rowData.find('td:eq(1)').text();
+          var status = rowData.find('td:eq(2)').text();
+          var down_rate = rowData.find('td:eq(3)').text();
+          var down_qouta = rowData.find('td:eq(4)').text();
+          var up_rate = rowData.find('td:eq(5)').text();
+          var up_qouta = rowData.find('td:eq(6)').text();
+          var element = document.getElementById("button");
+          // Menampilkan data dalam modal
+          $('#detailModal').modal('show');
+          document.getElementById("mode").value = 'delete';
+          document.getElementById("tipe").value =  tipe;
+          document.getElementById("tipe2").value =  tipe;
+          document.getElementById("session").value = Session;
+          let stelement = document.getElementById('status');
+          stelement.value = status;
+          document.getElementById("down_rate").value = down_rate;
+          document.getElementById("down_qouta").value = down_qouta;
+          document.getElementById("up_rate").value = up_rate;
+          document.getElementById("up_qouta").value = up_qouta;
+          element.innerHTML = 'delete';
+          element.classList.remove('btn-info');
+          element.classList.remove('btn-primary');
+          element.classList.add('btn-danger');
+          
+      });
+  });
+</script>
+</html>

@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+{% include 'fe/head.html'%}
+
+<body>
+  {% include 'fe/header.html'%}
+  {% include 'fe/sidebar.html'%}
+  
+  <main id="main" class="main">
+    <section class="section dashboard">
+      <div class="card">
+        <div class="card-body pt-3">
+          <ul class="nav nav-tabs nav-tabs-bordered" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+              <a class="nav-link active" id="overview-tab" data-bs-toggle="tab" href="#overview" data-bs-target="#bordered-overview" type="button" role="tab" data-toggle="tab" aria-controls="overview" aria-selected="true">Overview</a>
+            </li>
+            <li class="nav-item" role="presentation">
+              <a class="nav-link" id="realtime-tab" data-bs-toggle="tab" href="#realtime" data-bs-target="#bordered-realtime" type="button" role="tab" data-toggle="tab" aria-controls="realtime" aria-selected="false" tabindex="-1">Real Time Flow</a>
+            </li>
+            <li class="nav-item" role="presentation">
+              <a class="nav-link" id="flow-history-tab" data-bs-toggle="tab" href="#flow-history" data-bs-target="#bordered-flow-history" type="button" role="tab" data-toggle="tab" aria-controls="flow-history" aria-selected="false" tabindex="-1">Flow History</a>
+            </li>
+          </ul>
+          <div class="tab-content pt-2" id="pills-tabContent">
+
+            <div class="tab-pane fade active show" id="bordered-overview" role="tabpanel" aria-labelledby="overview-tab">
+              <!--overview  -->
+                <div class="card-body">
+                    <h6 class="card-title">Overview</h6>
+                    <div class="row">
+                      <div class="col">
+                        <div class="sales-card">
+                          <div class="card-body" style="background-color:rgb(232, 244, 254); border-radius: 10px">
+                            <h5 class="card-title">System <span>| Now</span></h5>
+                            <div class="row">
+                              <div class="col">
+                                <div class="d-flex align-items-center">
+                                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-cpu"></i>
+                                    <!-- <canvas id="cpuChart"></canvas> -->
+                                  </div>
+                                  <div class="ps-3">
+                                    <h5 id="cpuusage"><div class="spinner-border" role="status">
+                                      <span class="visually-hidden">Loading...</span>
+                                    </div></h5>
+                                  </div>
+                                </div>
+                              </div>  
+                              <div class="col">
+                                <div class="d-flex align-items-center">
+                                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                    <i class="bx bx-memory-card"></i>
+                                    <!-- <canvas id="ramChart"></canvas> -->
+                                  </div>
+                                  <div class="ps-3">
+                                    <h5 id="ramusage"><div class="spinner-border" role="status">
+                                      <span class="visually-hidden">Loading...</span>
+                                    </div></h5>
+                                    <span id="ramtotal" class="text-success small pt-1 fw-bold">~</span> <span class="text-muted small pt-2 ps-1">Ram</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="col">
+                        <div class="sales-card">
+                          <div class="card-body" style="background-color:rgb(232, 244, 254); border-radius: 10px">
+                            <h5 class="card-title">Online Clients <span>| Now</span></h5>
+                            <div class="row"> 
+                              <div class="col">
+                                <div class="d-flex align-items-center">
+                                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-people"></i>
+                                  </div>
+                                  <div class="ps-3">
+                                    <h5 id="useronline">
+                                      <div class="spinner-border" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                      </div>
+                                    </h5>
+                                    <span class="text-success small pt-1 fw-bold">Dhcp</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="col">
+                                <div class="d-flex align-items-center">
+                                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-people"></i>
+                                  </div>
+                                  <div class="ps-3">
+                                    <h5 id="userhotspot">
+                                      <div class="spinner-border" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                      </div>
+                                    </h5>
+                                    <span class="text-success small pt-1 fw-bold">Hotspot</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="col">
+                        <div class="sales-card">
+                          <div class="card-body" style="background-color:rgb(232, 244, 254); border-radius: 10px">
+                            <h5 class="card-title">Load Balancing <span>| Now</span></h5>
+                            <div class="row text-center" id="loadbalancerow">
+                              <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                  <h6 class="card-title">Device Detail</h6>
+                  <div class="row">
+                    <div class="col">
+                      <div class="card-body" style="background-color:rgb(165, 211, 248); border-radius: 10px;">
+                        <p class="card-title"></p>
+                        <ul class="list-unstyled">
+                          <li>Model : {{model}}</li>
+                          <li>Target : {{arch}}</li>
+                          <li>Firmware : {{desc}}</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="col">
+                      <div class="card-body" style="background-color:rgb(165, 211, 248); border-radius: 10px;">
+                        <p class="card-title"></p>
+                        <ul class="list-unstyled">
+                          <li></li>
+                          <li>under construction</li>
+                          <li>\</li>
+                          <li>\</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+              </div>
+
+              <!-- ethernet  -->
+                <div class="card-body">
+                  <h6 class="card-title">Ethernet Status</h6>
+                  <div class="row">
+                    <div class="col">
+                      <div class="sales-card">
+                        <div class="card-body" style="background-color:rgb(165, 211, 248); border-radius: 10px">
+                          <h5 class="card-title">Ethernet <span>| Now</span></h5>
+                          <div class="row ps-3" id="ethernetover">
+                            <div class="spinner-border" role="status">
+                              <span class="visually-hidden">Loading...</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              </div>
+
+            </div>
+            
+            <div class="tab-pane fade" id="bordered-realtime" role="tabpanel" aria-labelledby="realtime-tab">
+              <div class="sales-card">
+                <div class="card-body" style="background-color:rgb(170, 216, 253, 0.2); border-radius: 10px">
+                  <h5 class="card-title">Port Real-Time Flow</h5>
+                  <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label">Speed Mode</label>
+                    <div class="col-sm-2">
+                      <select class="form-select" id="speedrealtimehorizontalbar">
+                        <option value="bps">bps</option>
+                        <option value="Kbps" selected>Kbps</option>
+                        <option value="Mbps">Mbps</option>
+                      </select>
+                    </div>
+                  </div>
+                  <canvas id="realtimehorizontalbar" style="max-height: 250px; display: block; box-sizing: border-box; height: 182px; width: 364px;"></canvas>  
+                </div>
+              </div>
+              <br>
+              <div class="sales-card">
+                <div class="card-body" style="background-color:rgba(170, 216, 253, 0.2); border-radius: 10px">
+                  <h5 class="card-title">Flow In Realtime</h5>
+                  <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label">Ethernet </label>
+                    <div class="col-sm-2">
+                      <select class="form-select" id="ethernet">
+                        <option value="eth0" selected>eth0</option>
+                      </select>
+                    </div>
+                  </div>
+                  <canvas id="realtimeBarChart" style="max-height: 250px; display: block; box-sizing: border-box; height: 182px; width: 364px;"></canvas>  
+                </div>
+              </div>
+            </div>
+
+            <div class="tab-pane fade" id="bordered-flow-history" role="tabpanel" aria-labelledby="flow-history-tab">
+              <div class="sales-card">
+                <div class="row mb-3">
+                  <label class="col-sm-2 col-form-label">History Time Machine</label>
+                  <div class="col-sm-3">
+                    <input type="text" id="time" class="form-control" name="daterange" />
+                  </div>
+                </div>
+                
+                <div class="accordion" id="history">
+
+                </div>
+              </div>
+            </div>
+
+          </div><!-- End Bordered Tabs -->
+        </div>
+      </div>
+    </section>
+
+  </main><!-- End #main -->
+
+  {% include 'fe/footer.html' %}
+
+  <script>
+    $(function() {
+        $('a[data-toggle="tab"]').on('click', function(e) {
+            window.localStorage.setItem('activeTab', $(e.target).attr('href'));
+        });
+        var activeTab = window.localStorage.getItem('activeTab');
+        if (activeTab) {
+            $('#myTab a[href="' + activeTab + '"]').tab('show');
+        }
+    });
+  </script>
+
+<script>
+  function convertBytes(bytes, mode) {
+    if(mode == 'bps'){
+      return bytes;
+    } else if(mode == 'Kbps'){
+      return bytes;
+    }else if(mode == "Mbps"){
+      return bytes;
+    }else{
+      return bytes;
+    }
+  }
+  function speedeth(bytes){
+    if(bytes >= 1000000){
+      return bytes / 1000000 + 'G';
+    }else if(bytes == 10000 || bytes == 100000){
+      return bytes / 100000 + 'M'
+    }else{
+      return 'OFF';
+    }
+  }
+  function uptime(data, data2){
+    var c1 = 0;
+    for (var i = 0; i < data2.length; i++) {
+      
+      if (data2[i] === 1) {
+        c1++;
+      }
+    }
+
+    // Menghitung persentase 0 dan 1
+    var total = data2.length;
+    var percentage = (c1 / total) * 100;
+
+    document.getElementById(data).innerHTML = `Uptime : ${percentage}`;
+  }
+
+
+  $(document).ready(function () {     
+      var interfaceData = {};
+      var ctx1 = document.getElementById('realtimehorizontalbar').getContext('2d');
+      var horizontalChart = new Chart(ctx1, {
+          type: 'bar',
+          data: {
+              labels: ['eth0','eth1','eth2','eth3','eth4','eth5'],
+              datasets: [
+                  {
+                      label: 'Download-',
+                      backgroundColor: 'rgb(73, 158, 9)',
+                      borderColor: 'rgb(73, 158, 9)',
+                      borderWidth: 1,
+                      radius: 0,
+                      data: [],
+                  },
+                  {
+                      label: 'Upload-',
+                      backgroundColor: 'rgb(2, 101, 151)',
+                      borderColor: 'rgb(2, 101, 151)',
+                      borderWidth: 1,
+                      radius: 0,
+                      data: [],
+                  }
+                  
+              ],
+          },
+          options: {
+              indexAxis: 'y',
+              elements: {
+                  bar: {
+                      borderWidth: 2,
+                  }
+              },
+              responsive: true,
+              plugins: {
+                  legend: {
+                      position: 'right',
+                  },
+              },
+              scales: {
+                  x: {
+                      beginAtZero: true,
+                  },
+                  y: {
+                      stacked: false
+                  }
+              }
+          }
+      });
+
+      var ctx2 = document.getElementById('realtimeBarChart').getContext('2d');
+      var horizontalChart2 = new Chart(ctx2, {
+          type: 'line',
+          data: {
+              labels: [], // Isi dengan label yang sesuai
+              datasets: [
+                  {
+                      label: 'Upload-Mbps',
+                      fill: true,
+                      tension: 0.5,
+                      backgroundColor: 'rgb(2, 101, 151, 0.3)',
+                      borderColor: 'rgb(2, 101, 151)',
+                      borderWidth: 1,
+                      radius: 0,
+                      data: [],
+                  },
+                  {
+                      label: 'Download-Mbps',
+                      fill: true,
+                      tension: 0.5,
+                      backgroundColor: 'rgb(73, 158, 9, 0.3)',
+                      borderColor: 'rgb(73, 158, 9)',
+                      borderWidth: 1,
+                      radius: 0,
+                      data: [],
+                  }
+              ],
+          },
+          options: {
+              responsive: true,
+              interaction: {
+                  mode: 'index',
+                  intersect: false
+              },
+              scales: {
+                  x: {
+                      display: true,
+                      title: {
+                          display: true,
+                          text: 'Timestamp'
+                      }
+                  },
+                  y: {
+                      display: true,
+                      title: {
+                          display: true,
+                          text: 'Speed - Mbps'
+                      }
+                  }
+              }
+          }
+      });
+
+
+      function overview(){
+        $.ajax({
+              url: '/api?mode=system', // Ganti dengan URL API Anda
+              method: 'GET',
+              dataType: 'json',
+              success: function (data) {
+
+                  var activeTab = window.localStorage.getItem('activeTab');
+                  if(activeTab == null || activeTab == '#overview'){
+                    document.getElementById("cpuusage").innerHTML = (100 - data[0].cpu_idle).toFixed(1) + '%';
+                    document.getElementById("ramusage").innerHTML = ((data[0].ram_total - data[0].ram_free)/1000).toFixed(2) + ' Gb';
+                    document.getElementById("ramtotal").innerHTML = (data[0].ram_total/1000).toFixed(2) + ' Gb';
+                    document.getElementById("useronline").innerHTML = data[0].userol;
+                    document.getElementById("userhotspot").innerHTML = data[0].userhs;
+                  }
+                  
+              },
+              error: function (error) {
+                  console.error('Error:', error);
+              },
+          });
+      }
+
+      function loadbalance(){
+        $.ajax({
+              url: '/api?mode=loadbalance-status', // Ganti dengan URL API Anda
+              method: 'GET',
+              dataType: 'json',
+              success: function (data) {
+                var loadbalancerContainer = document.getElementById('loadbalancerow');
+                while (loadbalancerContainer.firstChild) {
+                  loadbalancerContainer.removeChild(loadbalancerContainer.firstChild);
+                }
+                data.forEach(function(item) {
+                              
+                var div = document.createElement('div');
+                div.className = 'col';
+                
+                if(item.status == 'online'){
+                  color = 'text-success';
+                }else{
+                  color = 'text-dark'
+                }
+
+                div.innerHTML = `
+                    <div class="col">
+                      <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                          <i class="bi bi-globe2 ${color}" rel="tooltip" title="${item.interface}"></i>
+                        </div>
+                        <div>
+                          <h6>${item.tracking}</h6>
+                          <span class="text-success small pt-1 fw-bold">${item.percentage}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  `;
+
+                  loadbalancerContainer.appendChild(div);
+                }); 
+              },
+              error: function (error) {
+                  console.error('Error:', error);
+              },
+          });
+        }
+
+      
+      function fetchflow() {
+          $.ajax({
+              url: '/api?mode=flow', // Ganti dengan URL API Anda
+              method: 'GET',
+              dataType: 'json',
+              success: function (data) {
+                var labels = [];
+                var uploadData = [];
+                var downloadData = [];
+
+                var speedrealtimehorizontalbar = document.getElementById("speedrealtimehorizontalbar");
+                var valuespeedrealtimehorizontal = speedrealtimehorizontalbar.value;
+
+                var speedrealtimebar = document.getElementById("ethernet");
+                var valuespeedrealtime = speedrealtimebar.value;
+
+                var activeTab = window.localStorage.getItem('activeTab');
+
+                // Menggunakan perulangan untuk mengiterasi melalui data antarmuka
+                for (var i = 0; i < data.length; i++) {
+                    var ethType = data[i].eth_type;
+                    labels.push(ethType);
+                    uploadData.push(convertBytes(data[i].speed_send, valuespeedrealtimehorizontal));
+                    downloadData.push(convertBytes(data[i].speed_recv, valuespeedrealtimehorizontal));
+
+                    // Membuat objek antarmuka berdasarkan eth_type jika belum ada
+                    if (!interfaceData[ethType]) {
+                        interfaceData[ethType] = {
+                            eth_down: [],
+                            eth_upload: [],
+                            time: []
+                        };
+                    }
+
+                    // Menambahkan data ke objek antarmuka
+                    interfaceData[ethType].eth_down.push(data[i].speed_send);
+                    interfaceData[ethType].eth_upload.push(data[i].speed_recv);
+                    interfaceData[ethType].time.push(data[i].timestamp);
+                }
+
+                // Menghapus data yang telah melebihi batas
+                for (var ethType in interfaceData) {
+                    if (interfaceData[ethType].eth_down.length >= 60) {
+                        interfaceData[ethType].eth_down.shift();
+                        interfaceData[ethType].eth_upload.shift();
+                        interfaceData[ethType].time.shift();
+                    }
+                }
+
+                if (activeTab == '#realtime') {
+                    if (valuespeedrealtime in interfaceData) {
+                        horizontalChart2.data.datasets[0].data = interfaceData[valuespeedrealtime].eth_upload;
+                        horizontalChart2.data.datasets[1].data = interfaceData[valuespeedrealtime].eth_down;
+                        horizontalChart2.data.labels = interfaceData[valuespeedrealtime].time;
+                    }
+
+                    var uploadDataset = horizontalChart.data.datasets[0];
+                    var downloadDataset = horizontalChart.data.datasets[1];
+                    horizontalChart.data.labels = labels
+                    uploadDataset.data = uploadData;
+                    downloadDataset.data = downloadData;
+
+                    uploadDataset.label = 'Upload-' + valuespeedrealtimehorizontal;
+                    downloadDataset.label = 'Download-' + valuespeedrealtimehorizontal;
+                    horizontalChart.update();
+                    horizontalChart2.update();
+
+                  }else{
+
+                    var ethernetContainer = document.getElementById('ethernetover');
+                    while (ethernetContainer.firstChild) {
+                      ethernetContainer.removeChild(ethernetContainer.firstChild);
+                    }
+                    data.forEach(function(item) {
+                      if (item.eth_type != 'eth0'){
+                        $('#ethernet').append('<option value="' + item.eth_type + '">' + item.eth_type + '</option>');
+                      }
+                      var div = document.createElement('div');
+                      div.className = 'col ps-3';
+                      ethspeed = speedeth(item.speed)
+                      if(ethspeed == '1G' || ethspeed =='2.5G' || ethspeed =='10G' || ethspeed =='25G'){
+                        ethcolor = 'text-success';
+                      }else if(ethspeed == '10M' || ethspeed == '100M'){
+                        ethcolor = 'text-warning'
+                      }else{
+                        ethcolor = 'text-dark';
+                      }
+                      div.innerHTML = `
+                        <div class="d-flex align-items-center">
+                          <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="fa-solid fa-ethernet ${ethcolor}"></i>
+                          </div>
+                          <div class="ps-3">
+                            <h5>${ethspeed}</h5>
+                            <span class="text-success small pt-1 fw-bold">Ethernet ${item.eth_type}</span>
+                          </div>
+                        </div>
+                      `;
+
+                      ethernetContainer.appendChild(div);
+                    });
+                  }
+              },
+              error: function (error) {
+                  console.error('Error:', error);
+              },
+          });
+      }
+      
+      function flowhistory(){
+        var e = document.getElementById('time').value;
+        $.ajax({
+              url: '/api?mode=flow-history&time='+e,
+              method: 'GET',
+              dataType: 'json',
+              success: function (data) {
+                BS = data['bandwidthstatus'];
+                S  = data['system'];
+                LB = data['loadbalance'];
+
+                var history = document.getElementById('history');
+                while (history.firstChild) {
+                  history.removeChild(history.firstChild);
+                }
+                for(var i in S['data']) { 
+                    if (i != 'timestamp'){
+                      var div = document.createElement('history');
+                      div.className = 'col';
+                      div.innerHTML = `
+                        <div class="accordion-item">
+                          <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#chart${i}" aria-expanded="false" aria-controls="chart${i}">
+                              ${i}
+                            </button>
+                          </h2>
+                          <div id="chart${i}" class="accordion-collapse collapse" data-bs-parent="#accordionExample" style="">
+                            <div class="accordion-body">
+                              <canvas id="${i}" style="max-height: 250px; display: block; box-sizing: border-box; height: 182px; width: 364px;"></canvas>
+                            </div>
+                          </div>
+                        </div>
+                        `;
+                      history.appendChild(div);
+                    }
+                };
+                for(var i in LB) { 
+                    var div = document.createElement('history');
+                    div.className = 'col';
+                    div.innerHTML = `
+                        <div class="accordion-item">
+                          <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#chart${i}" aria-expanded="false" aria-controls="chart${i}">
+                              ${i}
+                            </button>
+                          </h2>
+                          <div id="chart${i}" class="accordion-collapse collapse" data-bs-parent="#accordionExample" style="">
+                            <div class="accordion-body">
+                              <span id='status${i}'></span>
+                              <canvas id="${i}" style="max-height: 250px; display: block; box-sizing: border-box; height: 182px; width: 364px;"></canvas>
+                            </div>
+                          </div>
+                        </div>
+                        `;
+                    history.appendChild(div);
+                }; 
+                for(var i in BS) { 
+                    var div = document.createElement('history');
+                    div.className = 'col';
+                    div.innerHTML = `
+                        <div class="accordion-item">
+                          <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#chart${i}" aria-expanded="false" aria-controls="chart${i}">
+                              ${i}
+                            </button>
+                          </h2>
+                          <div id="chart${i}" class="accordion-collapse collapse" data-bs-parent="#accordionExample" style="">
+                            <div class="accordion-body">
+                              <span id='status${i}'></span>
+                              <canvas id="${i}" style="max-height: 250px; display: block; box-sizing: border-box; height: 182px; width: 364px;"></canvas>
+                            </div>
+                          </div>
+                        </div>
+                        `;
+                    history.appendChild(div);
+                };
+
+                var dataS = S.data;
+                timeS = S.data.timestamp;
+                for (var key in dataS) {
+                  if (dataS.hasOwnProperty(key)) { 
+                    var jsonData = dataS[key];
+                      if (key != 'timestamp'){
+                        var canvas = document.getElementById(key).getContext('2d');
+
+                        new Chart(canvas, {
+                          type: 'line',
+                          data: {
+                              labels: timeS,
+                              datasets: [
+                                  {
+                                      label: key,
+                                      fill: true,
+                                      tension: 0.5,
+                                      backgroundColor: 'rgb(2, 101, 151, 0.3)',
+                                      borderColor: 'rgb(2, 101, 151)',
+                                      borderWidth: 1,
+                                      radius: 0,
+                                      data: jsonData,
+                                  }
+                              ],
+                          },
+                          options: {
+                              responsive: true,
+                              interaction: {
+                                  mode: 'index',
+                                  intersect: false
+                              },
+                              scales: {
+                                  y: {
+                                      display: true,
+                                      title: {
+                                          display: true,
+                                          text: 'Usage ' + key
+                                      }
+                                  }
+                              }
+                          }
+                        });
+                      }
+                  };
+                };
+                
+                for (var key in LB){
+                  if (LB.hasOwnProperty(key)) { 
+                    var jsonData = LB[key];
+                    timeLB = jsonData.time
+                    uptime('status'+key, jsonData.status)
+                    var canvas = document.getElementById(key).getContext('2d');
+
+                          new Chart(canvas, {
+                            type: 'line',
+                            data: {
+                                labels: jsonData.time,
+                                datasets: [
+                                    {
+                                        label: 'Status',
+                                        fill: true,
+                                        tension: 0.5,
+                                        backgroundColor: 'rgb(2, 101, 151, 0.3)',
+                                        borderColor: 'rgb(2, 101, 151)',
+                                        borderWidth: 1,
+                                        radius: 0,
+                                        data: jsonData.status,
+                                    },
+                                    {
+                                        label: 'Tracking',
+                                        fill: true,
+                                        tension: 0.5,
+                                        backgroundColor: 'rgb(73, 158, 9, 0.3)',
+                                        borderColor: 'rgb(73, 158, 9)',
+                                        borderWidth: 1,
+                                        radius: 0,
+                                        data: jsonData.tracking,
+                                    }
+                                ],
+                            },
+                            options: {
+                                responsive: true,
+                                interaction: {
+                                    mode: 'index',
+                                    intersect: false
+                                }
+                            }
+                          });
+                    }
+                }
+
+                for (var key in BS){
+                  if (BS.hasOwnProperty(key)) { 
+                    var jsonData = BS[key];
+                    timeBS = jsonData.time
+                    var canvas = document.getElementById(key).getContext('2d');
+
+                          new Chart(canvas, {
+                            type: 'line',
+                            data: {
+                                labels: jsonData.time,
+                                datasets: [
+                                    {
+                                        label: 'Recived',
+                                        fill: true,
+                                        tension: 0.5,
+                                        backgroundColor: 'rgb(2, 101, 151, 0.3)',
+                                        borderColor: 'rgb(2, 101, 151)',
+                                        borderWidth: 1,
+                                        radius: 0,
+                                        data: jsonData.eth_down,
+                                    },
+                                    {
+                                        label: 'Send',
+                                        fill: true,
+                                        tension: 0.5,
+                                        backgroundColor: 'rgb(73, 158, 9, 0.3)',
+                                        borderColor: 'rgb(73, 158, 9)',
+                                        borderWidth: 1,
+                                        radius: 0,
+                                        data: jsonData.eth_upload,
+                                    }
+                                ],
+                            },
+                            options: {
+                                responsive: true,
+                                interaction: {
+                                    mode: 'index',
+                                    intersect: false
+                                }
+                            }
+                          });
+                    }
+                }
+              },
+              error: function (error) {
+                  console.error('Error:', error);
+              },
+          });
+      }
+
+      function call(){
+        overview();
+        loadbalance()
+        fetchflow();
+        
+      }
+      
+      call();
+      flowhistory();
+      setInterval(call, 5000);
+      $("#mytab").on("change", function () {
+        call();
+      });
+
+      $('#time').on('apply.daterangepicker', function(ev, picker) {
+          flowhistory();
+      });
+
+    
+  });
+
+  $('#time').daterangepicker({
+            timePicker: true,
+            timePicker24Hour: true,
+            opens: 'left',
+            locale: {
+              format: 'YYYY-M-DD HH:mm:ss'
+            }
+        }, function(start, end) {
+            var dayDifference = end.diff(start, 'days');
+            if (dayDifference > 90) {
+                end = start.clone().add(90, 'days');
+            }
+
+            $('#time').val(start.format('YYYY-MM-DD HH:mm:ss') + ' - ' + end.format('YYYY-MM-DD HH:mm:ss'));
+
+            $('#time').data('daterangepicker').setEndDate(end);
+        });
+
+        var defaultStart = moment().format('YYYY-MM-DD 00:00:00');
+        var defaultEnd = moment().format('YYYY-MM-DD 23:59:00');
+        $('#time').val(defaultStart + ' - ' + defaultEnd);
+</script>
+</body>
+
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+{% include '/fe/head.html'%}
+
+<body>
+  {% include '/fe/header.html'%}
+  {% include '/fe/sidebar.html'%}
+  
+  <main id="main" class="main">
+    <section class="section dashboard">
+      <div class="card">
+        <div class="card-body pt-3">
+            <h5 class="card-title">Hotspot User Profile</h5>
+            <button class="btn btn-primary" id="modal" data-toggle="modal">Add</button>
+            <table class="table datatable" id="table">
+                <thead> 
+                    <tr>
+                      <th scope="col">Username</th>
+                      <th scope="col">Password</th>
+                      <th scope="col">Type</th>
+                      <th scope="col">Qouta Used</th>
+                      <th scope="col">last Login</th>
+                      <th scope="col">Uptime</th>
+                      <th scope="col">Aksi</th>
+                      <th scope="col">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for item in data %}
+                    <tr>
+                      <td>{{item['username']}}</td>
+                      <td>{{item['password']}}</td>
+                      <td>{{item['tipe']}}</td>
+                      <td>{{item['qoutaused']}}</td>
+                      <td>{{item['lastlogin']}}</td>
+                      <td>{{item['uptime']}}</td>
+                      <td><button class="btn btn-info" data-toggle="modal">Edit</button></td>
+                      <td><button class="btn btn-danger" data-toggle="modal">Hapus</button></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+      </div>
+      <!-- Modal untuk menampilkan detail data -->
+<div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="detailModalLabel" id="tipe"></h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form action="/hotspot/user" method="POST">
+              <div class="row mb-3">
+                <label for="inputText" class="col-sm-2 col-form-label">Username</label>
+                <div class="col-sm-10">
+                  <input type="hidden" name="mode" id="mode">
+                  <input type="hidden" name="username2" id="tipe2">
+                  <input type="text" name="username" id="tipe" required="" class="form-control" placeholder="Username">
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="inputText" class="col-sm-2 col-form-label">Password</label>
+                <div class="col-sm-10">
+                  <input type="text" name="password" id="session" required="" min="0" class="form-control" placeholder="Password Username">
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="inputText" class="col-sm-2 col-form-label">Type User Profile</label>
+                <div class="col-sm-10">
+                  <select class="form-select" name="tipe" id="status" required="" aria-label="Default select example">
+                    <option value="" selected>{% if UP|length == 0 %} Please Create User Profile first {% else %}Select User Profile{% endif %}</option>
+                    {% for item in UP %}
+                    <option value="{{item['tipe']}}">{{item['tipe']}}</option>
+                    {%endfor%}
+                  </select>
+                </div>
+              </div>
+              
+              <div class="d-grid gap-2 mt-3">
+                <button class="btn" id="button" type="submit">Block Button</button>
+              </div>
+            </form>
+          </div>
+      </div>
+  </div>
+</div>
+    </section>
+
+  </main><!-- End #main -->
+
+</body>
+{% include '/fe/footer.html' %}
+<script>
+  // Fungsi untuk menangani peristiwa ketika tombol "Aksi" diklik
+  $(document).ready(function() {
+    $('#modal').click( function () {
+      var element = document.getElementById("button");
+          // Menampilkan data dalam modal
+          $('#detailModal').modal('show');
+          document.getElementById("mode").value = 'add';
+          element.innerHTML = 'add';
+          element.classList.remove('btn-danger');
+          element.classList.remove('btn-info');
+          element.classList.add('btn-primary');
+    })
+    $('#table tbody').on('click', 'button.btn-info', function () {
+          var rowData = $(this).closest('tr');
+          var tipe = rowData.find('td:eq(0)').text();
+          var session = rowData.find('td:eq(1)').text();
+          var status = rowData.find('td:eq(2)').text();
+          var element = document.getElementById("button");
+          // Menampilkan data dalam modal
+          $('#detailModal').modal('show');
+          document.getElementById("mode").value = 'edit';
+          document.getElementById("tipe").value =  tipe;
+          document.getElementById("tipe2").value =  tipe;
+          document.getElementById("session").value = session;
+          let stelement = document.getElementById('status');
+          stelement.value = status;
+          element.innerHTML = 'edit';
+          element.classList.remove('btn-danger');
+          element.classList.remove('btn-primary');
+          element.classList.add('btn-info');
+          
+      });
+      $('#table tbody').on('click', 'button.btn-danger', function () {
+          var rowData = $(this).closest('tr');
+          var tipe = rowData.find('td:eq(0)').text();
+          var Session = rowData.find('td:eq(1)').text();
+          var status = rowData.find('td:eq(2)').text();
+          var element = document.getElementById("button");
+          // Menampilkan data dalam modal
+          $('#detailModal').modal('show');
+          document.getElementById("mode").value = 'delete';
+          document.getElementById("tipe").value =  tipe;
+          document.getElementById("tipe2").value =  tipe;
+          document.getElementById("session").value = Session;
+          let stelement = document.getElementById('status');
+          stelement.value = status;
+          element.innerHTML = 'delete';
+          element.classList.remove('btn-info');
+          element.classList.remove('btn-primary');
+          element.classList.add('btn-danger');
+          
+      });
+  });
+</script>
+</html>

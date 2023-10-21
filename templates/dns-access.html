@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+{% include '/fe/head.html'%}
+
+<body>
+  {% include '/fe/header.html'%}
+  {% include '/fe/sidebar.html'%}
+  
+  <main id="main" class="main">
+    <section class="section dashboard">
+      <div class="card">
+        <div class="card-body pt-3">
+            <h5 class="card-title">Domain Access | <span onclick="location='/dns-access?purge=yes'">Purge DNS</span> | <span onclick="location='/dns-access?reenable=yes'">Re enable</span></h5>
+            <canvas id="pieChart" style="max-height: 400px; display: block; box-sizing: border-box; height: 400px; width: 403px;" width="403" height="400"></canvas>
+            <br>
+            <table class="table datatable table-striped text-center">
+                <thead>
+                  <tr>
+                    <th scope="col">Domain</th>
+                    <th scope="col">Total Access</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                {% for item in data %}
+                  <tr>
+                    <th scope="row">{{item['url']}}</th>
+                    <td>{{item['num_access']}}</td>
+                    <td>{{item['mode']}}</td>
+                    <td>
+                        <form action="/dns-access" method="POST">
+                            <input type="hidden" name="url" value="{{item['url']}}">
+                            {% if item['mode'] == 'Block' %}
+                            <input type="hidden" name="mode" value="Unblock">
+                            <button class="btn btn-success" type="submit">Unblock</button>
+                            {% else %}
+                            <input type="hidden" name="mode" value="Block">
+                            <button class="btn btn-danger" type="submit">Block</button>
+                            {% endif %}
+                        </form>
+                    </td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+        </div>
+      </div>
+
+    </section>
+
+  </main><!-- End #main -->
+
+</body>
+{% include '/fe/footer.html' %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const randomColor = () => {
+            const r = Math.floor(Math.random() * 256);
+            const g = Math.floor(Math.random() * 256);
+            const b = Math.floor(Math.random() * 256);
+            return `rgb(${r}, ${g}, ${b})`;
+            };
+        const dnsEntries = {{ data | tojson | safe }};
+
+        const limitedDnsEntries = dnsEntries.slice(0, 60);
+        const labels = limitedDnsEntries.map(entry => entry.url);
+        const data = limitedDnsEntries.map(entry => entry.num_access);
+        const backgroundColor = Array.from({ length: limitedDnsEntries.length }, () => randomColor());
+
+        new Chart(document.querySelector('#pieChart'), {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Domain Access',
+                    data: data,
+                    backgroundColor: backgroundColor,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    });
+  </script>
+</html>

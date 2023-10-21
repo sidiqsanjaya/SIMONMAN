@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+{% include '/fe/head.html'%}
+
+<body>
+  {% include '/fe/header.html'%}
+  {% include '/fe/sidebar.html'%}
+  
+  <main id="main" class="main">
+    <section class="section dashboard">
+      <div class="card">
+        <div class="card-body pt-3">
+            <h5 class="card-title">Hotspot Setting</h5>
+            <form action="/hotspot" method="POST">
+                <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label">Enable Hotspot</label>
+                    <div class="col-sm-10">
+                      <div class="form-check form-switch">
+                          <input type="hidden" name="enable" id="enableInput" {% if data['opennds']['enabled'] == '1' %}value='on'checked{% else %} value='off'{% endif %}>
+                          <input class="form-check-input" type="checkbox"id="flexSwitchCheckChecked" {% if data['opennds']['enabled'] == '1' %}value='1'checked{% else %}unchecked{% endif %}>
+                      </div>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="inputText" class="col-sm-2 col-form-label">Hotspot Name</label>
+                    <div class="col-sm-10">
+                      <input type="text" name="gwname" class="form-control"  required="" placeholder="Name Gateway" value="{{data['opennds']['gatewayname']}}">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="inputText" class="col-sm-2 col-form-label">Hotspot Port</label>
+                    <div class="col-sm-10">
+                      <input type="number" name="gwport" class="form-control"  required="" placeholder="Gateway Port" value="{{data['opennds']['gatewayport']}}">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                  <label for="inputText" class="col-sm-2 col-form-label">Hotspot Interface</label>
+                  <div class="col-sm-10">
+                      <select class="form-select"  name="gwinterface" required="">
+                        {% for key, value in interface.items() %}
+                            {% if '@device' in key %}
+                              <option value="{{ value['option']['name'] }}">{{ value['option']['name'] }}</option>
+                            {% endif %}
+                        {% endfor %}
+                        </select>
+                  </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="inputText" class="col-sm-2 col-form-label">Gateway Url</label>
+                    <div class="col-sm-10">
+                      <input type="text" name="gwurl" class="form-control"  required="" placeholder="Url Gateway Later" value="{{data['opennds']['gatewayfqdn']}}">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="inputText" class="col-sm-2 col-form-label">Allow Login Router</label>
+                    <div class="col-sm-10">
+                      <div class="form-check form-switch">
+                        <input type="hidden" name="passthrought" id="enableInput2" {% if data['opennds']['users_to_router_passthrought'] == '1' %}value='on'checked{% else %} value='off'{% endif %}>
+                        <input class="form-check-input" type="checkbox"id="flexSwitchCheckChecked2" {% if data['opennds']['users_to_router_passthrought'] == '1' %}value='1'{% else %}unchecked{% endif %}>
+                      </div>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                  <label for="inputText" class="col-sm-2 col-form-label">Max Client Login</label>
+                  <div class="col-sm-10">
+                    <input type="number" name="Mclient" class="form-control"  required="" placeholder="same as submask network" value="{{data['opennds']['maxclients']}}">
+                  </div>
+                </div>
+                <div class="row mb-3">
+                  <label for="inputText" class="col-sm-2 col-form-label">Default Rate Down</label>
+                  <div class="col-sm-10">
+                    
+                    <input type="number" name="Drate" class="form-control"  required="" placeholder="Per Kbps, 0 Mean Unlimited" value="{{data['opennds']['downloadrate']}}">
+                  </div>
+                </div>
+                <div class="row mb-3">
+                  <label for="inputText" class="col-sm-2 col-form-label">Default Qouta Down</label>
+                  <div class="col-sm-10">
+                    <input type="number" name="Dquota" class="form-control"  required="" placeholder="Per Kbps, 0 Mean Unlimited" value="{{data['opennds']['downloadquota']}}">
+                  </div>
+                </div>
+                <div class="row mb-3">
+                  <label for="inputText" class="col-sm-2 col-form-label">Default Rate Upload</label>
+                  <div class="col-sm-10">
+                    <input type="number" name="Urate" class="form-control"  required="" placeholder="Per Kbps, 0 Mean Unlimited" value="{{data['opennds']['uploadrate']}}">
+                  </div>
+                </div>
+                <div class="row mb-3">
+                  <label for="inputText" class="col-sm-2 col-form-label">Default Qouta Upload</label>
+                  <div class="col-sm-10">
+                    <input type="number" name="Uquota" class="form-control"  required="" placeholder="Per Kbps, 0 Mean Unlimited" value="{{data['opennds']['uploadquota']}}">
+                  </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label"></label>
+                    <div class="col-sm-10">
+                      <div class="form-floating mb-3">
+                        <textarea class="form-control" id="floatingTextarea" style="height: 100px;" disabled="">After hotspot enable, System will need User to reconnect and Login on Server, Make sure Config Profile and User Account.</textarea>
+                        <label for="floatingTextarea">Comments</label>
+                      </div>
+                      
+                      <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+      </div>
+
+    </section>
+
+  </main><!-- End #main -->
+
+
+<script>
+  
+  document.getElementById("flexSwitchCheckChecked").addEventListener("change", function() {
+        var enableInput = document.getElementById("enableInput");
+        if (this.checked) {
+            enableInput.value = "on";
+        } else {
+            enableInput.value = "off";
+        }
+    });
+    document.getElementById("flexSwitchCheckChecked2").addEventListener("change", function() {
+        var enableInput2 = document.getElementById("enableInput2");
+        if (this.checked) {
+            enableInput2.value = "on";
+        } else {
+            enableInput2.value = "off";
+        }
+    });
+</script>
+</body>
+{% include '/fe/footer.html' %}
+</html>
