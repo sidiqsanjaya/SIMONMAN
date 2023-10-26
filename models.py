@@ -53,3 +53,10 @@ class DNS_access(db.Model):
     url = db.Column(db.String(255), primary_key=True)
     num_access = db.Column(db.BigInteger, nullable=False)
     mode = db.Column(db.String(255), nullable=True)
+
+class URL_monitor(db.Model):
+    url = db.Column(db.String(255), primary_key=True)
+    mark = db.Column(db.String(255), nullable=True)
+    status = db.Column(db.String(255), nullable=True)
+    last_update = db.Column(db.DateTime, default=lambda: datetime.now(timezone('Asia/Jakarta')))
+

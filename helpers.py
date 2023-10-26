@@ -7,8 +7,7 @@ import netdata as net
 from databases import db
 import socket
 import os
-
-
+import concurrent.futures
 
 def get_latest_bandwidth_data():
     latest_data = db.session.query(
@@ -293,8 +292,6 @@ def update_mode_for_url(url, new_mode):
         entry.mode = new_mode
         db.session.commit()
 
-
-
 def resolve_domain_to_ip(domain):
     try:
         ip_address = socket.gethostbyname_ex(domain)[2]
@@ -329,4 +326,29 @@ def dns_block_first(mode):
     elif mode == 'load':
         dns_block_load()
             
+def scan_ports(host, InRange, ToRange):
+    open_ports = {}
 
+    def scan_port(port):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.settimeout(1)
+                result = sock.connect_ex((host, port))
+
+                if result == 0:
+                    service = socket.getservbyport(port, 'tcp')
+                    open_ports[port] = service
+                    # print(f"Port {port} is open ({service})")
+        except (socket.timeout, ConnectionRefusedError):
+            pass
+        except socket.error as e:
+            return f"Error: {e}"
+
+    try:
+        ip = socket.gethostbyname(host)
+    except socket.gaierror:
+        return false
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
+        results = [executor.submit(scan_port, port) for port in range(InRange, ToRange)]
+    return open_ports

@@ -277,8 +277,14 @@
   }
 
 
-  $(document).ready(function () {     
+  $(document).ready(function () {   
+      window.onerror = function(message, url, lineNumber) {   
+          return true; 
+      };  
+
       var interfaceData = {};
+      var first = false;
+      
       var ctx1 = document.getElementById('realtimehorizontalbar').getContext('2d');
       var horizontalChart = new Chart(ctx1, {
           type: 'bar',
@@ -332,7 +338,7 @@
       var horizontalChart2 = new Chart(ctx2, {
           type: 'line',
           data: {
-              labels: [], // Isi dengan label yang sesuai
+              labels: [],
               datasets: [
                   {
                       label: 'Upload-Mbps',
@@ -366,7 +372,7 @@
                   x: {
                       display: true,
                       title: {
-                          display: true,
+                          display: false,
                           text: 'Timestamp'
                       }
                   },
@@ -380,7 +386,6 @@
               }
           }
       });
-
 
       function overview(){
         $.ajax({
@@ -446,10 +451,9 @@
               error: function (error) {
                   console.error('Error:', error);
               },
-          });
-        }
-
-      
+        });
+      }
+     
       function fetchflow() {
           $.ajax({
               url: '/api?mode=flow', // Ganti dengan URL API Anda
@@ -467,7 +471,15 @@
                 var valuespeedrealtime = speedrealtimebar.value;
 
                 var activeTab = window.localStorage.getItem('activeTab');
-
+                if (first == false){
+                  first = true;
+                  data.forEach(function(item) {
+                    if (item.eth_type != 'eth0'){
+                      $('#ethernet').append('<option value="' + item.eth_type + '">' + item.eth_type + '</option>');
+                    }
+                  });
+                  
+                }
                 // Menggunakan perulangan untuk mengiterasi melalui data antarmuka
                 for (var i = 0; i < data.length; i++) {
                     var ethType = data[i].eth_type;
@@ -524,9 +536,7 @@
                       ethernetContainer.removeChild(ethernetContainer.firstChild);
                     }
                     data.forEach(function(item) {
-                      if (item.eth_type != 'eth0'){
-                        $('#ethernet').append('<option value="' + item.eth_type + '">' + item.eth_type + '</option>');
-                      }
+
                       var div = document.createElement('div');
                       div.className = 'col ps-3';
                       ethspeed = speedeth(item.speed)
@@ -793,9 +803,7 @@
 
       $('#time').on('apply.daterangepicker', function(ev, picker) {
           flowhistory();
-      });
-
-    
+      }); 
   });
 
   $('#time').daterangepicker({

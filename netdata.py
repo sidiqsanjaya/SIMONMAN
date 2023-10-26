@@ -1,11 +1,21 @@
 import requests
 import json
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
 # URL API Netdata "allmetrics" yang akan digunakan
 netdata_url = 'http://127.0.0.1:19999/api/v1/allmetrics?format=json&names=yes&data=as-collected'
 chart_data = {}
-chart_net = ['eth0','eth1','eth2']
-chart_cpu = ['0','1','2','3']
+chart_net = []
+chart_cpu = []
+def init():
+    cpu = os.environ.get('cpu_cores').split(',')
+    for a in cpu:
+        chart_cpu.append(a)
+    eth = os.environ.get('ether').split(',')
+    for a in eth:
+        chart_net.append(a)
 
 def get_netdata():
     cpu_sum = 0

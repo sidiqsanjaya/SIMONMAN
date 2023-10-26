@@ -1,7 +1,7 @@
 import crypt
 import os
 from flask import Flask, jsonify, request, redirect, render_template, session, url_for
-from dotenv import load_dotenv
+from dotenv import load_dotenv, set_key
 import urllib.parse
 from databases import db
 import base64
@@ -11,13 +11,14 @@ from helpers import *
 from models import *
 import logging
 import sys
+import time
+import datetime
 
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.WARNING)
-logging.getLogger('werkzeug').setLevel(logging.WARNING)
+logging.getLogger('werkzeug').setLevel(logging.INFO)
 
 app = Flask(__name__)
-
 app.app_context()
 load_dotenv()
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('sqlite_database')
@@ -58,6 +59,10 @@ def dns_access():
         dns_block_mode(mode, url)
         return redirect(url_for('dns_access'))
     return render_template('dns-access.html', data=get_dns_access())
+
+@app.route('/services/monitoring')
+def monitoring():
+    return render_template('/services/monitor.html')
 
 @app.route('/hotspot', methods=['GET','POST'])
 def hotspot():
@@ -185,9 +190,14 @@ def hotspot_login():
     else:
         return jsonify({'error': 'Request tidak dapat ditemukan'}), 405
 
+min1 = 0
 @app.route('/cron')
 def cron():
     with app.app_context():
+        global min1
+        date_time = datetime.datetime.now()
+        time_unix = time.mktime(date_time.timetuple())
+        # per 5 seccond
         data_on_netdata = net.get_netdata()
         for key, value in data_on_netdata.items():
             if key == 'system':
@@ -210,6 +220,11 @@ def cron():
             db.session.commit()
 
         insert_domains_to_database(uci.DNS_tracker())
+        # per minute run
+        if min1 == 0 or (time_unix - min1) >= 60:
+            min1 = time_unix
+            print(f"Memperbarui sec5 ke {min1}")
+
     return ''
 
 def check_password(password_input):
@@ -270,8 +285,17 @@ def api():
         return jsonify({'error': 'Unauthorized'}), 401    
 
 def install():
-    cd = sys.path[0]
-    uci.install_ipk(cd)
+    if os.environ.get('first_run') == 'true':
+        cd = sys.path[0]
+        # uci.install_ipk(cd)
+        cpu_core_str = ",".join(map(str, uci.get_cpu_cores()))
+        set_key('.env', 'cpu_cores', cpu_core_str)
+
+        eth_str = ",".join(map(str, uci.get_hardware_interface('name')))
+        set_key('.env', 'ether', eth_str)
+
+        set_key('.env', 'first_run', 'false')
+
 
 @app.errorhandler(404)
 def page_not_found(error):
@@ -282,9 +306,11 @@ def page_not_found(error):
     return render_template('/fe/400.html')
 
 if __name__ == '__main__':
+    
     with app.app_context():
+        # URL_monitor.__table__.drop(db.engine)
         db.create_all()
-        # install()
-        dns_block_first('del')
+        install()
+        net.init()
         dns_block_first('load')
     app.run(debug=os.environ.get('debug'), host=uri, port=port)

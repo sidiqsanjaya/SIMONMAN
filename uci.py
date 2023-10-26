@@ -4,7 +4,7 @@ import subprocess
 import re
 import json
 from urllib.parse import unquote
-
+import multiprocessing
 
 def install_ipk(dir):
     configurations = [
@@ -138,9 +138,13 @@ def get_interface():
                 if 'option' not in network_data[sp[1]]:
                     network_data[sp[1]]['option'] = {}
                 if len(sp) > 4:
-                    network_data[sp[1]]['option'][sp3[0]] = sp[2]+'.'+sp[3]+'.'+sp[4]+'.'+sp[4]
+                    network_data[sp[1]]['option'][sp3[0]] = sp[2]+'.'+sp[3]+'.'+sp[4]+'.'+sp[5]
                 else:
-                    network_data[sp[1]]['option'][sp3[0]] = sp3[1]
+                    if len(sp) > 3:
+                        network_data[sp[1]]['option'][sp3[0]] = sp3[1]+'.'+sp[3]
+                    else:
+                        network_data[sp[1]]['option'][sp3[0]] = sp3[1]
+
     return network_data
 
 def get_opennds_config():
@@ -305,4 +309,66 @@ def DNS_tracker():
 
     return list(accessed_domains)
 
+def get_hardware_interface(mode):
+    with open('/proc/net/dev', 'r') as file:
+        lines = file.readlines()
+    data = lines[2:]
+    data_array = []
+    for line in data:
+        fields = line.split()
+        interface = fields[0].rstrip(':')
 
+        if mode == 'name':
+            if interface != 'lo':
+                if interface.startswith('eth'):
+                    data_array.append(interface)
+                else:
+                    break
+        else:
+            bytes_in = int(fields[1])
+            packet_in = int(fields[2])
+            errs_in = int(fields[3])
+            drop_in = int(fields[4])
+            fifo_in = int(fields[5])
+            frame_in = int(fields[6])
+            comp_in = int(fields[7])
+            multi_in = int(fields[8])
+            bytes_out = int(fields[9])
+            packet_out = int(fields[10])
+            errs_out = int(fields[11])
+            drop_out = int(fields[12])
+            fifo_out = int(fields[13])
+            colls_out = int(fields[14])
+            carrier_out = int(fields[15])
+            comp_out = int(fields[16])
+
+            data_array.append({
+                'interface': interface,
+                'bytes_in': bytes_in,
+                'packet_in': packet_in,
+                'errs_in': errs_in,
+                'drop_in': drop_in,
+                'fifo_in': fifo_in,
+                'frame_in': frame_in,
+                'comp_in': comp_in,
+                'multi_in': multi_in,
+                'bytes_out': bytes_out,
+                'packet_out': packet_out,
+                'errs_out': errs_out,
+                'drop_out': drop_out,
+                'fifo_out': fifo_out,
+                'colls_out': colls_out,
+                'carrier_out': carrier_out,
+                'comp_out': comp_out
+
+            })
+    return data_array
+
+def get_cpu_cores():
+    data_array =[]
+    no = 0
+    data = multiprocessing.cpu_count()
+    for i in range(data):
+        data_array.append(no)
+        no = no + 1
+    return data_array
