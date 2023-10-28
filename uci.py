@@ -138,7 +138,8 @@ def get_interface():
                 if 'option' not in network_data[sp[1]]:
                     network_data[sp[1]]['option'] = {}
                 if len(sp) > 4:
-                    network_data[sp[1]]['option'][sp3[0]] = sp[2]+'.'+sp[3]+'.'+sp[4]+'.'+sp[5]
+                    sp4 = sp[2].split('=')
+                    network_data[sp[1]]['option'][sp3[0]] = sp4[1]+'.'+sp[3]+'.'+sp[4]+'.'+sp[5]
                 else:
                     if len(sp) > 3:
                         network_data[sp[1]]['option'][sp3[0]] = sp3[1]+'.'+sp[3]
@@ -183,7 +184,7 @@ def set_opennds_config(enable, GWname, GWport, GWinterf, GWurl, passthrought, Mc
         ("opennds.@opennds[0].fasport=" f"{FasRemotePort}"),
         ("opennds.@opennds[0].faspath=/hotspot/login"),
         ("opennds.@opennds[0].fasremoteip="f"{FasRemoteIp}"),
-        ("opennds.@opennds[0].secure_enabled=1"),
+        ("opennds.@opennds[0].fas_secure_enabled=1"),
         ("opennds.@opennds[0].faskey=abcd123141"),
         ("opennds.@opennds[0].gatewayname="f"{GWname}"),
         ("opennds.@opennds[0].gatewayinterface="f"{GWinterf}"),

@@ -98,7 +98,7 @@ parse_parameters() {
 			gatewayname_dec=$(printf "${gatewayname//%/\\x}")
 			htmlentityencode "$gatewayname_dec"
 			gatewaynamehtml=$entityencoded
-
+			gatewaynamecut=$(echo "$gatewaynamehtml" | awk -F 'Node:' '{print $1}')
 			# Get client_zone from clientif
 			get_client_zone
 
@@ -173,7 +173,7 @@ body() {
                             <div class="d-flex justify-content-center py-4">
                                 <a class="logo d-flex align-items-center w-auto">
                                 <img src="/cover.jpg" alt="">
-                                <span class="d-none d-lg-block">HotSpot</span>
+                                <span class="d-none d-lg-block">'${gatewaynamecut}'</span>
                                 </a>
                             </div><!-- End Logo -->
 

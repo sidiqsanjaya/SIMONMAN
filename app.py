@@ -62,6 +62,7 @@ def dns_access():
 
 @app.route('/services/monitoring')
 def monitoring():
+    return HS_user_qouta()
     return render_template('/services/monitor.html')
 
 @app.route('/hotspot', methods=['GET','POST'])
@@ -71,7 +72,7 @@ def hotspot():
             enable = request.form['enable']
             GWname = request.form['gwname']
             GWport = request.form['gwport']
-            GWinterf = request.form['gwinterface']
+            GWinterf = request.form['gwinterface'].split('|')
             passthrought=request.form['passthrought']
             Mclient= request.form['Mclient']
             GWurl  = request.form['gwurl']
@@ -80,7 +81,8 @@ def hotspot():
             Dqouta = request.form['Dquota']
             Uqouta = request.form['Uquota']
             cd = sys.path[0]
-            uci.set_opennds_config(enable, GWname, GWport, GWinterf, GWurl, passthrought, Mclient, Drate, Urate, Dqouta, Uqouta, uri, port, cd)
+            uci.set_opennds_config(enable, GWname, GWport, GWinterf[0], GWurl, passthrought, Mclient, Drate, Urate, Dqouta, Uqouta, GWinterf[1], port, cd)
+            return redirect(url_for('hotspot'))
         return render_template('/hotspot/hs_homepage.html', interface=uci.get_interface(), data=uci.get_opennds_config())
     else:
         return redirect(url_for('login'))
@@ -149,7 +151,17 @@ def hotspot_login():
     fas =  request.args.get('fas')
     if fas:
         if request.method == 'GET':
-            return render_template('/hotspot/hs_login.html', fas=fas, error=tipe)
+            decoded_data = base64.b64decode(fas).decode('utf-8')
+            data_array = decoded_data.split(', ')
+            data_dict = {}
+            for item in data_array:
+                if '=' in item:
+                    key, value = item.split('=')
+                    data_dict[key] = value
+                else:
+                    data_dict[item] = None
+            sp = urllib.parse.unquote(data_dict['gatewayname']).split('Node:')
+            return render_template('/hotspot/hs_login.html', fas=fas, name=sp, error=tipe)
     elif request.method == 'POST':
         username = str(request.form['username'])
         password = str(request.form['password'])
@@ -174,7 +186,7 @@ def hotspot_login():
                 gatewayurl = 'http://'+data_dict['gatewayaddress']+'/'
 
             mode = 'mac'
-            
+            sp = urllib.parse.unquote(data_dict['gatewayname']).split('Node:')
             status, tipe, uname, passw,  session, down_rate, up_rate, down_qouta, up_qouta  =HS_user_onlogin(username, password)
             if status:
                 if mode == "mac":
@@ -186,7 +198,7 @@ def hotspot_login():
                 uci.HS_active(token, session, down_rate, up_rate, down_qouta, up_qouta, base64.b64encode(data.encode('utf-8')))
                 return redirect(gatewayurl, code=302)
             else:
-                return render_template('/hotspot/hs_login.html', fas=fas, error=tipe)
+                return render_template('/hotspot/hs_login.html', fas=fas, name=sp, error=tipe)
     else:
         return jsonify({'error': 'Request tidak dapat ditemukan'}), 405
 
@@ -296,7 +308,6 @@ def install():
 
         set_key('.env', 'first_run', 'false')
 
-
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template('/fe/404.html')
@@ -305,8 +316,7 @@ def page_not_found(error):
 def page_not_found(error):
     return render_template('/fe/400.html')
 
-if __name__ == '__main__':
-    
+if __name__ == '__main__':    
     with app.app_context():
         # URL_monitor.__table__.drop(db.engine)
         db.create_all()

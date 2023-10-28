@@ -236,6 +236,13 @@ def HS_update_user(LP, user, ps, tipe):
     conn.commit()
     conn.close()
 
+def HS_delete_user(user):
+    conn = db.engine.connect()
+    query = text(f"DELETE FROM hs_user where username = '{user}';")
+    conn.execute(query)
+    conn.commit()
+    conn.close()
+
 def HS_user_onlogin(user, passw):
     conn = db.engine.connect()
     query = text(f"SELECT hu.username, hu.password, hp.* FROM hs_user hu INNER JOIN hs_profile hp ON hp.tipe = hu.tipe WHERE hu.username = '{user}' AND hu.password = '{passw}'")
@@ -251,12 +258,38 @@ def HS_user_onlogin(user, passw):
         else:
             return False, 'User profile Disable', 0, 0, 0, 0, 0, 0, 0
 
-def HS_delete_user(user):
-    conn = db.engine.connect()
-    query = text(f"DELETE FROM hs_user where username = '{user}';")
-    conn.execute(query)
-    conn.commit()
-    conn.close()
+memory_HS_user = {}
+def HS_memory(token, user, dt, ut, mod=0):
+    if mod == 0 :
+        if token not in memory_HS_user:
+            memory_HS_user[token] = {
+                'user': user,
+                'down_ses': dt,
+                'up_ses': ut,
+                'last': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
+        else:
+            # Token sudah ada dalam tabel, jumlahkan datanya
+            memory_HS_user[token]['down_ses'] += (dt - memory_HS_user[token]['down_ses'])
+            memory_HS_user[token]['up_ses'] += (ut - memory_HS_user[token]['up_ses'])
+            memory_HS_user[token]['last'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    elif mod == 'del':
+        del memory_HS_user[token]
+    else:
+        return memory_HS_user
+
+def HS_user_qouta():
+    HS = uci.HS_status()
+    HSC = HS['clients']
+    for item in HSC:
+        if  HSC[item]['state'] == 'Authenticated':
+            user = HSC[item]['custom']['username']
+            token = HSC[item]['token']
+            dt = int(HSC[item]['download_this_session'])
+            ut = int(HSC[item]['upload_this_session'])
+            HS_memory(token, user, dt, ut)
+    print(HS_memory(0, 0, 0, 0, 'aa'))
+    return uci.HS_status()
 
 def insert_domains_to_database(domains):
     for domain in domains:

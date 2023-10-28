@@ -40,25 +40,31 @@
                   <div class="col-sm-10">
                       <select class="form-select"  name="gwinterface" required="">
                         {% for key, value in interface.items() %}
-                            {% if '@device' in key %}
-                              <option value="{{ value['option']['name'] }}">{{ value['option']['name'] }}</option>
+                          {% if not key.startswith('@device') and key not in ['loopback', 'globals'] %}
+                            {% if value['option']['ipaddr'] %}
+                              {% if (value['option']['device'] == data['opennds']['gatewayinterface'])%}
+                                <option value="{{value['option']['device'] }}|{{value['option']['ipaddr']}}" selected>{{ value['option']['device'] }} > {{key}}</option>
+                              {% else %}
+                                <option value="{{value['option']['device'] }}|{{value['option']['ipaddr']}}">{{ value['option']['device'] }} > {{key}}</option>
+                              {% endif %}
                             {% endif %}
+                          {% endif %}
                         {% endfor %}
                         </select>
                   </div>
                 </div>
                 <div class="row mb-3">
-                    <label for="inputText" class="col-sm-2 col-form-label">Gateway Url</label>
+                    <label for="inputText" class="col-sm-2 col-form-label">Gateway FQDN</label>
                     <div class="col-sm-10">
-                      <input type="text" name="gwurl" class="form-control"  required="" placeholder="Url Gateway Later" value="{{data['opennds']['gatewayfqdn']}}">
+                      <input type="text" name="gwurl" class="form-control"  required="" placeholder="Url Gateway Later, default status.client" value="{{data['opennds']['gatewayfqdn']}}">
                     </div>
                 </div>
                 <div class="row mb-3">
                     <label for="inputText" class="col-sm-2 col-form-label">Allow Login Router</label>
                     <div class="col-sm-10">
                       <div class="form-check form-switch">
-                        <input type="hidden" name="passthrought" id="enableInput2" {% if data['opennds']['users_to_router_passthrought'] == '1' %}value='on'checked{% else %} value='off'{% endif %}>
-                        <input class="form-check-input" type="checkbox"id="flexSwitchCheckChecked2" {% if data['opennds']['users_to_router_passthrought'] == '1' %}value='1'{% else %}unchecked{% endif %}>
+                        <input type="hidden" name="passthrought" id="enableInput2" {% if data['opennds']['users_to_router_passthrough'] == '1' %}value='on'checked{% else %} value='off'{% endif %}>
+                        <input class="form-check-input" type="checkbox"id="flexSwitchCheckChecked2" {% if data['opennds']['users_to_router_passthrough'] == '1' %} checked {% else %} unchecked {% endif %}>
                       </div>
                     </div>
                 </div>
