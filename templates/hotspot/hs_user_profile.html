@@ -31,13 +31,13 @@
                 <tbody>
                   {% for item in data %}
                   <tr>
-                    <td contenteditable="true">{{item['tipe']}}</td>
-                    <td contenteditable="true">{{item['session']}}</td>
-                    <td contenteditable="true">{{item['status']}}</td>
-                    <td contenteditable="true">{{item['down_rate']}}</td>
-                    <td contenteditable="true">{{item['down_qouta']}}</td>
-                    <td contenteditable="true">{{item['up_rate']}}</td>
-                    <td contenteditable="true">{{item['up_qouta']}}</td>
+                    <td>{{item['tipe']}}</td>
+                    <td>{{item['session']}}</td>
+                    <td>{{item['status']}}</td>
+                    <td>{{item['down_rate']}}</td>
+                    <td>{{item['down_qouta']}}</td>
+                    <td>{{item['up_rate']}}</td>
+                    <td>{{item['up_qouta']}}</td>
                     <td><button class="btn btn-info" data-toggle="modal">Edit</button></td>
                     <td><button class="btn btn-danger" data-toggle="modal">Hapus</button></td>
                   </tr>

@@ -365,7 +365,7 @@ h6 {
 }
 
 .logo img {
-  max-height: 26px;
+  max-height: 50px;
   margin-right: 6px;
 }
 
@@ -391,7 +391,7 @@ h6 {
   font-size: 32px;
   padding-left: 0px;
   cursor: pointer;
-  color: #ffffff;
+  color: #000000;
 }
 
 .header .search-bar {

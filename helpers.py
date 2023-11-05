@@ -2,12 +2,14 @@ from datetime import datetime
 from sqlalchemy import func, text
 from sqlalchemy.exc import SQLAlchemyError
 from models import *
-import uci as uci
+import uci_cmd as uci
 import netdata as net
 from databases import db
 import socket
 import os
+import subprocess
 import concurrent.futures
+max_threads = 5
 
 def get_latest_bandwidth_data():
     latest_data = db.session.query(
@@ -208,7 +210,7 @@ def HS_delete_profile(tipe):
     conn.close()
     
 def HS_add_user(username, password, tipe=''):
-    db_sent = HS_user(username=username, password=password, tipe=tipe)
+    db_sent = HS_user(username=username, qoutaused=0, uptime=0, password=password, tipe=tipe)
     db.session.add(db_sent)
     db.session.commit()
 
@@ -266,19 +268,25 @@ def HS_memory(token, user, dt, ut, mod=0):
                 'user': user,
                 'down_ses': dt,
                 'up_ses': ut,
+                'uptime': 0,
+                'dl': dt,
+                'ul': ut,
                 'last': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
         else:
-            # Token sudah ada dalam tabel, jumlahkan datanya
-            memory_HS_user[token]['down_ses'] += (dt - memory_HS_user[token]['down_ses'])
-            memory_HS_user[token]['up_ses'] += (ut - memory_HS_user[token]['up_ses'])
-            memory_HS_user[token]['last'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            if memory_HS_user[token]['ul'] != ut or memory_HS_user[token]['dl'] != dt:
+                memory_HS_user[token]['dl'] = dt
+                memory_HS_user[token]['ul'] = ut
+                memory_HS_user[token]['down_ses'] += (dt - memory_HS_user[token]['down_ses'])
+                memory_HS_user[token]['up_ses'] += (ut - memory_HS_user[token]['up_ses'])
+                memory_HS_user[token]['last'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            memory_HS_user[token]['uptime'] = 5
     elif mod == 'del':
         del memory_HS_user[token]
     else:
         return memory_HS_user
 
-def HS_user_qouta():
+def HS_get_user_qouta():
     HS = uci.HS_status()
     HSC = HS['clients']
     for item in HSC:
@@ -288,8 +296,26 @@ def HS_user_qouta():
             dt = int(HSC[item]['download_this_session'])
             ut = int(HSC[item]['upload_this_session'])
             HS_memory(token, user, dt, ut)
-    print(HS_memory(0, 0, 0, 0, 'aa'))
-    return uci.HS_status()
+    print(memory_HS_user)
+
+def HS_save_user_qouta():
+    if len(memory_HS_user) != 0:
+        for token, value in memory_HS_user.items():
+            print(value)
+            if value['user'] != '-':
+                exits_users = HS_user.query.get(value['user'])
+                if exits_users:
+                    exits_users.qoutaused += int(value['down_ses']) + int(value['up_ses'])
+                    # exits_users.lastlogin = datetime.strptime(value['last'], "%Y-%m-%d %H:%M:%S")
+                    # exits_users.uptime += int(value['uptime'])
+                    db.session.commit()
+                    HS_memory(token, 0, 0, 0, mod='del')
+                    print(datetime.strptime(value['last'], "%Y-%m-%d %H:%M:%S"))
+                else:
+                   uci.HS_death(token) 
+            else:
+                uci.HS_death(token)
+    return memory_HS_user  
 
 def insert_domains_to_database(domains):
     for domain in domains:
@@ -382,6 +408,38 @@ def scan_ports(host, InRange, ToRange):
     except socket.gaierror:
         return false
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_threads) as executor:
         results = [executor.submit(scan_port, port) for port in range(InRange, ToRange)]
     return open_ports
+
+def ping_ips(ip_list):
+    results = {}
+    # Fungsi untuk melakukan ping ke alamat IP
+    print(ip_list)
+    def ping_ip(ip):
+        try:
+            result = subprocess.run(['ping', '-c', '1', ip], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=1)
+            if result.returncode == 0:
+                output = result.stdout
+                # Mem-parsing hasil ping untuk mendapatkan latency
+                lines = output.split('\n')
+                latency = "N/A"
+                for line in lines:
+                    if "time=" in line:
+                        latency = line.split("time=")[1].split(" ")[0]
+                results[ip] = {}
+                results[ip]['latency'] = latency
+                results[ip]['status'] = 'reachable'
+            else:
+                results[ip] = {}
+                results[ip]['latency'] = latency
+                results[ip]['status'] = 'unreachable'
+        except subprocess.TimeoutExpired:
+            results[ip] = {}
+            results[ip]['latency'] = 'N/A'
+            results[ip]['status'] = 'timed out'
+
+    with concurrent.futures.ThreadPoolExecutor(max_threads) as executor:
+        executor.map(ping_ip, ip_list)
+
+    return results

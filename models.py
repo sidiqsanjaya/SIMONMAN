@@ -54,6 +54,14 @@ class DNS_access(db.Model):
     num_access = db.Column(db.BigInteger, nullable=False)
     mode = db.Column(db.String(255), nullable=True)
 
+    def to_dict(self):
+        return {
+            'url': self.url,
+            'num_access': self.num_access,
+            'mode': self.mode,
+            # Tambahkan atribut lain yang perlu kamu tampilkan dalam JSON
+        }
+
 class URL_monitor(db.Model):
     url = db.Column(db.String(255), primary_key=True)
     mark = db.Column(db.String(255), nullable=True)

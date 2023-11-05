@@ -9,46 +9,79 @@
   {% include '/fe/sidebar.html'%}
   
   <main id="main" class="main">
-    <section class="section dashboard">
-      <div class="card">
-        <div class="card-body pt-3">
-            <h5 class="card-title">Monitoring Device</h5>
-            <canvas id="pieChart" style="max-height: 400px; display: block; box-sizing: border-box; height: 400px; width: 403px;" width="403" height="400"></canvas>
-            <br>
-            <table class="table datatable table-striped text-center">
+    <section class="section">
+      <div class="row">
+        <div class="col-lg-6">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">monitor Local Device (based by static ip)</h5>
+
+              <table class="table table-striped" id="local">
                 <thead>
                   <tr>
-                    <th scope="col">Domain</th>
-                    <th scope="col">Total Access</th>
+                    <th scope="col">Hostname</th>
+                    <th scope="col">Ip</th>
+                    <th scope="col">Mac</th>
+                    <th scope="col">Latency</th>
                     <th scope="col">Status</th>
                     <th scope="col">Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                {% for item in data %}
+                  {% for key, value in data1.items() %}
                   <tr>
-                    <th scope="row">{{item['url']}}</th>
-                    <td>{{item['num_access']}}</td>
-                    <td>{{item['mode']}}</td>
+                    <td>{{value['name']}}</td>
+                    <td>{{key}}</td>
+                    <td>{{value['mac']}}</td>
+                    <td>0</td>
+                    <td>0</td>
                     <td>
-                        <form action="/dns-access" method="POST">
-                            <input type="hidden" name="url" value="{{item['url']}}">
-                            {% if item['mode'] == 'Block' %}
-                            <input type="hidden" name="mode" value="Unblock">
-                            <button class="btn btn-success" type="submit">Unblock</button>
-                            {% else %}
-                            <input type="hidden" name="mode" value="Block">
-                            <button class="btn btn-danger" type="submit">Block</button>
-                            {% endif %}
-                        </form>
+                      <form action="/services/monitoring" method="POST">
+                        <input type="hidden" name="ip" value="{{key}}">
+                        <input type="hidden" name="mac" value="{{value['mac']}}">
+                        <input type="hidden" name="name" value="{{value['name']}}">
+                        <button class="btn btn-Warning" style="background-color: red !important; border-color: red !important; color: white !important;" type="submit">Remove</button>
+                      </form>
                     </td>
                   </tr>
-                {% endfor %}
+                  {% endfor %}
                 </tbody>
               </table>
+              
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Latency Ping</h5>
+
+              <table class="table table-striped datatable">
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Position</th>
+                    <th scope="col">Age</th>
+                    <th scope="col">Start Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">1</th>
+                    <td>Brandon Jacob</td>
+                    <td>Designer</td>
+                    <td>28</td>
+                    <td>2016-05-25</td>
+                  </tr>
+                </tbody>
+              </table>
+
+            </div>
+          </div>
         </div>
       </div>
-
     </section>
 
   </main><!-- End #main -->
@@ -56,34 +89,43 @@
 </body>
 {% include '/fe/footer.html' %}
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const randomColor = () => {
-            const r = Math.floor(Math.random() * 256);
-            const g = Math.floor(Math.random() * 256);
-            const b = Math.floor(Math.random() * 256);
-            return `rgb(${r}, ${g}, ${b})`;
-            };
-        
+$(document).ready(function () {
+  var table = $('#local').DataTable({
+    "responsive": true
+  });
+  function update(){
+    $('#local tbody tr').each(function() {
+        var row = $(this);
+        var ip = row.find('td:eq(1)').text(); // Mengambil data IP dari kolom kedua (indeks 1)
+        var $latencyCell = row.find('td:eq(3)'); // Kolom Latency (indeks 3)
+        var $statusCell = row.find('td:eq(4)');
 
-        new Chart(document.querySelector('#pieChart'), {
-            type: 'pie',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Domain Access',
-                    data: data,
-                    backgroundColor: backgroundColor,
-                    hoverOffset: 6
-                }]
-            },
-            options: {
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                }
+        // Lakukan permintaan AJAX ke server untuk mendapatkan data latency dan status
+        $.ajax({
+          url: '/services/monitoring/api?type=local', // Ganti dengan URL API yang sesuai
+          data: { ip: ip },
+          success: function(response) {
+            console.log(response)
+            // Isi kolom Latency dan Status dengan data yang diterima dari server
+            if (ip in response) {
+              var cell = table.cell(row, $latencyCell);
+              cell.data(response[ip].latency).draw();
+              cell = table.cell(row, $statusCell);
+              cell.data(response[ip].status).draw();
+            } else {
+              $latencyCell.text("Data tidak ditemukan");
+              $statusCell.text("Data tidak ditemukan");
             }
+          },
+          error: function() {
+            $latencyCell.text("Error");
+            $statusCell.text("Error");
+          }
         });
     });
-  </script>
+  }
+  update()
+  setInterval(update, 60000);
+});
+</script>
 </html>

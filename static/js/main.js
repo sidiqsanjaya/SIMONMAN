@@ -201,7 +201,7 @@
    */
   const datatables = select('.datatable', true)
   datatables.forEach(datatable => {
-    new simpleDatatables.DataTable(datatable, {
+    new DataTable(datatable, {
       lengthMenu: [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
       responsive: true
     });

@@ -5,7 +5,7 @@ from dotenv import load_dotenv, set_key
 import urllib.parse
 from databases import db
 import base64
-import uci as uci
+import uci_cmd as uci
 import netdata as net
 from helpers import *
 from models import *
@@ -32,18 +32,27 @@ db.init_app(app)
 
 @app.route('/homepage')
 def homepage():
-    if 'authenticated' in session and session['authenticated']:
-        model, dd, da = uci.board()
-        return render_template('homepage.html', model=model, arch=da, desc=dd)
-    else:
-        return redirect(url_for('login'))
+    if not checklogin():
+        return redirect('/login')
+    model, dd, da = uci.board()
+    return render_template('homepage.html', model=model, arch=da, desc=dd)
 
-@app.route('/Online-client')
+@app.route('/Online-client', methods=['GET', 'POST'])
 def user_online():
-    return render_template('online-user.html', data=uci.dhcp_lease())
+    if not checklogin():
+        return redirect('/login')
+    if request.method == 'POST':
+        ip = request.form['ip']
+        mac= request.form['mac']
+        name= request.form['name']
+        uci.set_static_dhcp(name, ip, mac)
+        return redirect(url_for('user_online'))
+    return render_template('online-user.html', data=uci.dhcp_lease(), static=uci.get_static_dhcp())
 
 @app.route('/dns-access', methods=['GET', 'POST'])
 def dns_access():
+    if not checklogin():
+        return redirect('/login')
     if request.args.get('purge') == 'yes':
         purge_dns_data()
         return redirect(url_for('dns_access'))
@@ -52,86 +61,140 @@ def dns_access():
         dns_block_first('load')
         return redirect(url_for('dns_access'))
 
+    if request.args.get('state')  == 'unblock':
+        urls = request.args.getlist('urls')
+        for url in urls:
+            update_mode_for_url(url, 'Unblock')
+            dns_block_mode('Unblock', url)
+        return redirect(url_for('dns_access'))
+
+    if request.args.get('state')  == 'block':
+        urls = request.args.getlist('urls')
+        urls = request.args.getlist('urls')
+        for url in urls:
+            update_mode_for_url(url, 'Block')
+            dns_block_mode('Block', url)
+        return redirect(url_for('dns_access'))
+
     if request.method == 'POST':
         url = request.form['url']
         mode= request.form['mode']
         update_mode_for_url(url, mode)
         dns_block_mode(mode, url)
         return redirect(url_for('dns_access'))
-    return render_template('dns-access.html', data=get_dns_access())
+    return render_template('dns-access.html')
+
+@app.route('/dns-access/logs', methods=['GET'])
+def get_dns_logs():
+    if not checklogin():
+        return redirect('/login')
+    draw = int(request.args.get('draw'))
+    start = int(request.args.get('start'))
+    length = int(request.args.get('length'))
+    search = request.args.get('search')
+
+    query = DNS_access.query.order_by(DNS_access.num_access.desc())
+
+    if search:  # Jika ada kata kunci pencarian
+        query = query.filter(DNS_access.url.like(f"%{search}%"))
+
+    total_items = query.count()
+    end = min(start + length, total_items)
+
+    paginated_logs = query.slice(start, end)
+
+    response = {
+        "draw": draw,
+        "recordsTotal": total_items,
+        "recordsFiltered": total_items,
+        "data": [log.to_dict() for log in paginated_logs]
+    }
+
+    return jsonify(response)
+
+@app.route('/services/monitoring/api', methods=['GET'])
+def monitoring_device():
+    if not checklogin():
+        return redirect('/login')
+    if request.args.get('type') == 'local':
+        fm = request.args.get('ip')
+        data = ping_ips([fm])
+    elif request.args.get('type') == 'ping':
+        data = uci.get_static_dhcp()
+    else:
+        return jsonify({'error': 'Invalid request method'}), 405
+    return jsonify(data)
 
 @app.route('/services/monitoring')
 def monitoring():
-    return HS_user_qouta()
-    return render_template('/services/monitor.html')
+    return render_template('/services/monitor.html', data1=uci.get_static_dhcp())
 
 @app.route('/hotspot', methods=['GET','POST'])
 def hotspot():
-    if 'authenticated' in session and session['authenticated']:
-        if request.method == 'POST':
-            enable = request.form['enable']
-            GWname = request.form['gwname']
-            GWport = request.form['gwport']
-            GWinterf = request.form['gwinterface'].split('|')
-            passthrought=request.form['passthrought']
-            Mclient= request.form['Mclient']
-            GWurl  = request.form['gwurl']
-            Drate  = request.form['Drate']
-            Urate  = request.form['Urate']
-            Dqouta = request.form['Dquota']
-            Uqouta = request.form['Uquota']
-            cd = sys.path[0]
-            uci.set_opennds_config(enable, GWname, GWport, GWinterf[0], GWurl, passthrought, Mclient, Drate, Urate, Dqouta, Uqouta, GWinterf[1], port, cd)
-            return redirect(url_for('hotspot'))
-        return render_template('/hotspot/hs_homepage.html', interface=uci.get_interface(), data=uci.get_opennds_config())
-    else:
-        return redirect(url_for('login'))
+    if not checklogin():
+        return redirect('/login')
+    if request.method == 'POST':
+        enable = request.form['enable']
+        GWname = request.form['gwname']
+        GWport = request.form['gwport']
+        GWinterf = request.form['gwinterface'].split('|')
+        passthrought=request.form['passthrought']
+        Mclient= request.form['Mclient']
+        GWurl  = request.form['gwurl']
+        Drate  = request.form['Drate']
+        Urate  = request.form['Urate']
+        Dqouta = request.form['Dquota']
+        Uqouta = request.form['Uquota']
+        cd = sys.path[0]
+        uci.set_opennds_config(enable, GWname, GWport, GWinterf[0], GWurl, passthrought, Mclient, Drate, Urate, Dqouta, Uqouta, GWinterf[1], port, cd)
+        return redirect(url_for('hotspot'))
+    return render_template('/hotspot/hs_homepage.html', interface=uci.get_interface(), data=uci.get_opennds_config())
     
 @app.route('/hotspot/user', methods=['GET','POST'])
 def hotspot_user():
-    if 'authenticated' in session and session['authenticated']:
-        if request.method == 'POST':
-            mode = request.form['mode']
-            user = request.form['username']
-            pss = request.form['password']
-            tipe = request.form['tipe']
-            tipe2 = request.form['username2']
-            print(tipe)
-            if mode == 'add':
-                HS_add_user(user, pss, tipe)
-            elif mode == 'edit':
-                HS_update_user(tipe2, user, pss, tipe)
-            elif mode == 'delete':
-                HS_delete_user(user)
-        return render_template('/hotspot/hs_user.html', data=HS_get_user(), UP=HS_get_profile())
-    else:
-        return redirect(url_for('login'))
+    if not checklogin():
+        return redirect('/login')
+    if request.method == 'POST':
+        mode = request.form['mode']
+        user = request.form['username']
+        pss = request.form['password']
+        tipe = request.form['tipe']
+        tipe2 = request.form['username2']
+        print(tipe)
+        if mode == 'add':
+            HS_add_user(user, pss, tipe)
+        elif mode == 'edit':
+            HS_update_user(tipe2, user, pss, tipe)
+        elif mode == 'delete':
+            HS_delete_user(user)
+    return render_template('/hotspot/hs_user.html', data=HS_get_user(), UP=HS_get_profile())
 
 @app.route('/hotspot/profile', methods=['GET','POST'])
 def hotspot_profile():
-    if 'authenticated' in session and session['authenticated']:
-        if request.method == 'POST':
-            mode = request.form['mode']
-            ss = request.form['session']
-            st = request.form['status']
-            tipe = request.form['tipe']
-            tipe2 = request.form['tipe2']
-            dr = request.form['down_rate']
-            dq = request.form['down_qouta']
-            ur = request.form['up_rate']
-            uq = request.form['up_qouta']
-            if mode == 'add':
-                HS_add_profile(tipe, st, ss, dr, ur, dq, uq)
-            elif mode == 'edit':
-                HS_update_profile(tipe2, tipe, st, ss, dr, ur, dq, uq)
-            elif mode == 'delete':
-                HS_delete_profile(tipe)
-        return render_template('/hotspot/hs_user_profile.html', data=HS_get_profile())
-    else:
-        return redirect(url_for('login'))
+    if not checklogin():
+        return redirect('/login')
+    if request.method == 'POST':
+        mode = request.form['mode']
+        ss = request.form['session']
+        st = request.form['status']
+        tipe = request.form['tipe']
+        tipe2 = request.form['tipe2']
+        dr = request.form['down_rate']
+        dq = request.form['down_qouta']
+        ur = request.form['up_rate']
+        uq = request.form['up_qouta']
+        if mode == 'add':
+            HS_add_profile(tipe, st, ss, dr, ur, dq, uq)
+        elif mode == 'edit':
+            HS_update_profile(tipe2, tipe, st, ss, dr, ur, dq, uq)
+        elif mode == 'delete':
+            HS_delete_profile(tipe)
+    return render_template('/hotspot/hs_user_profile.html', data=HS_get_profile())
 
 @app.route('/hotspot/active', methods=['GET', 'POST'])
 def hotspot_active():
+    if not checklogin():
+        return redirect('/login')
     if request.method == 'POST':
         token = request.form['mac']
         uci.HS_death(token)
@@ -139,6 +202,8 @@ def hotspot_active():
 
 @app.route('/hotspot/walled-garden', methods=['GET', 'POST'])
 def hotspot_walled_garden():
+    if not checklogin():
+        return redirect('/login')
     if request.method == 'POST':
         url = request.form['url']
         port = request.form['port']
@@ -203,39 +268,47 @@ def hotspot_login():
         return jsonify({'error': 'Request tidak dapat ditemukan'}), 405
 
 min1 = 0
+min2 = 0
 @app.route('/cron')
 def cron():
     with app.app_context():
-        global min1
+        global min1, min2
         date_time = datetime.datetime.now()
         time_unix = time.mktime(date_time.timetuple())
-        # per 5 seccond
-        data_on_netdata = net.get_netdata()
-        for key, value in data_on_netdata.items():
-            if key == 'system':
-                hs = uci.HS_status()
-                
-                if hs['client_list_length'] == 0:
-                    hsa = 0
-                else:
-                    hsa= int(hs['client_list_length'])
-                db_sent = System(cpu_idle=value['cpu_idle'], ram_total=value['ram_total'], ram_free=value['ram_free'], conntrack=value['conntrack'], userol=uci.get_leased(), userhs=hsa)
-            else:
-                db_sent = BandwidthStatus(eth_type=key, status=value['status'], speed=value['speed'], speed_send=value['send'], speed_recv=value['recev'])
-            db.session.add(db_sent)
-            db.session.commit()
-        
-        data_mwan3 = uci.get_mwan_status()
-        for key, value in data_mwan3.items():
-            db_sent = LoadBalance(interface=key, status=value['status'], tracking=value['tracking'], percentage=value['percentage'])
-            db.session.add(db_sent)
-            db.session.commit()
 
-        insert_domains_to_database(uci.DNS_tracker())
+        # per 5 seccond
+        # data_on_netdata = net.get_netdata()
+        # for key, value in data_on_netdata.items():
+        #     if key == 'system':
+        #         hs = uci.HS_status()
+                
+        #         if hs['client_list_length'] == 0:
+        #             hsa = 0
+        #         else:
+        #             hsa= int(hs['client_list_length'])
+        #         db_sent = System(cpu_idle=value['cpu_idle'], ram_total=value['ram_total'], ram_free=value['ram_free'], conntrack=value['conntrack'], userol=uci.get_leased(), userhs=hsa)
+        #     else:
+        #         db_sent = BandwidthStatus(eth_type=key, status=value['status'], speed=value['speed'], speed_send=value['send'], speed_recv=value['recev'])
+        #     db.session.add(db_sent)
+        #     db.session.commit()
+        
+        # data_mwan3 = uci.get_mwan_status()
+        # for key, value in data_mwan3.items():
+        #     db_sent = LoadBalance(interface=key, status=value['status'], tracking=value['tracking'], percentage=value['percentage'])
+        #     db.session.add(db_sent)
+        #     db.session.commit()
+
+        # insert_domains_to_database(uci.DNS_tracker())
+
         # per minute run
-        if min1 == 0 or (time_unix - min1) >= 60:
+        
+        HS_get_user_qouta()
+        if min1 == 0 or (time_unix - min1) >= 32:
             min1 = time_unix
-            print(f"Memperbarui sec5 ke {min1}")
+            HS_save_user_qouta()
+        if min2 == 0 or (time_unix - min2) >= 60:
+            min2 = time_unix
+            print(f"Memperbarui sec5 ke {min2}")
 
     return ''
 
@@ -244,7 +317,6 @@ def check_password(password_input):
         for line in shadow_file:
             if line.startswith('root:'):
                 password_hash = line.split(':')[1]
-                print(password_hash)
                 if crypt.crypt(password_input, password_hash) == password_hash:
                     return True
                 break
@@ -255,19 +327,26 @@ def check_password(password_input):
 def index():
     return redirect(url_for('login'))
 
+def checklogin():
+    if 'authenticated' not in session or not session['authenticated']:
+        return False
+    return True
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    error = ''
     if request.method == 'POST':
         password = request.form['loginpass']
         if check_password(password):
             session['authenticated'] = True
             return redirect(url_for('homepage'))
         else:
-            return 'Login gagal. Silakan coba lagi.'
+            error = 'Incorect Password'
+            return render_template('login.html', error=error)
     if 'authenticated' in session and session['authenticated']:
         return redirect(url_for('homepage'))
     else:
-        return render_template('login.html')
+        return render_template('login.html', error=error)
 
 @app.route('/logout')
 def logout():
@@ -323,4 +402,4 @@ if __name__ == '__main__':
         install()
         net.init()
         dns_block_first('load')
-    app.run(debug=os.environ.get('debug'), host=uri, port=port)
+    app.run(debug=os.environ.get('debug'), host=uri, port=port, threaded=True)
