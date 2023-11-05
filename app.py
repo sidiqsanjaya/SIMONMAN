@@ -277,28 +277,28 @@ def cron():
         time_unix = time.mktime(date_time.timetuple())
 
         # per 5 seccond
-        # data_on_netdata = net.get_netdata()
-        # for key, value in data_on_netdata.items():
-        #     if key == 'system':
-        #         hs = uci.HS_status()
+        data_on_netdata = net.get_netdata()
+        for key, value in data_on_netdata.items():
+            if key == 'system':
+                hs = uci.HS_status()
                 
-        #         if hs['client_list_length'] == 0:
-        #             hsa = 0
-        #         else:
-        #             hsa= int(hs['client_list_length'])
-        #         db_sent = System(cpu_idle=value['cpu_idle'], ram_total=value['ram_total'], ram_free=value['ram_free'], conntrack=value['conntrack'], userol=uci.get_leased(), userhs=hsa)
-        #     else:
-        #         db_sent = BandwidthStatus(eth_type=key, status=value['status'], speed=value['speed'], speed_send=value['send'], speed_recv=value['recev'])
-        #     db.session.add(db_sent)
-        #     db.session.commit()
+                if hs['client_list_length'] == 0:
+                    hsa = 0
+                else:
+                    hsa= int(hs['client_list_length'])
+                db_sent = System(cpu_idle=value['cpu_idle'], ram_total=value['ram_total'], ram_free=value['ram_free'], conntrack=value['conntrack'], userol=uci.get_leased(), userhs=hsa)
+            else:
+                db_sent = BandwidthStatus(eth_type=key, status=value['status'], speed=value['speed'], speed_send=value['send'], speed_recv=value['recev'])
+            db.session.add(db_sent)
+            db.session.commit()
         
-        # data_mwan3 = uci.get_mwan_status()
-        # for key, value in data_mwan3.items():
-        #     db_sent = LoadBalance(interface=key, status=value['status'], tracking=value['tracking'], percentage=value['percentage'])
-        #     db.session.add(db_sent)
-        #     db.session.commit()
+        data_mwan3 = uci.get_mwan_status()
+        for key, value in data_mwan3.items():
+            db_sent = LoadBalance(interface=key, status=value['status'], tracking=value['tracking'], percentage=value['percentage'])
+            db.session.add(db_sent)
+            db.session.commit()
 
-        # insert_domains_to_database(uci.DNS_tracker())
+        insert_domains_to_database(uci.DNS_tracker())
 
         # per minute run
         
@@ -308,7 +308,7 @@ def cron():
             HS_save_user_qouta()
         if min2 == 0 or (time_unix - min2) >= 60:
             min2 = time_unix
-            print(f"Memperbarui sec5 ke {min2}")
+            # print(f"Memperbarui sec5 ke {min2}")
 
     return ''
 
