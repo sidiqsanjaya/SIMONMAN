@@ -1,7 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-
-
 {% include '/fe/head.html'%}
 
 <body>
@@ -93,20 +89,25 @@ $(document).ready(function () {
   var table = $('#local').DataTable({
     "responsive": true
   });
+    table.on('length.dt', function(e, settings, len) {
+        update()
+    });
+    table.on('page.dt', function(e, settings) {
+        var pageInfo = table.page.info();
+        update()
+    });  
+
   function update(){
     $('#local tbody tr').each(function() {
         var row = $(this);
-        var ip = row.find('td:eq(1)').text(); // Mengambil data IP dari kolom kedua (indeks 1)
-        var $latencyCell = row.find('td:eq(3)'); // Kolom Latency (indeks 3)
+        var ip = row.find('td:eq(1)').text();
+        var $latencyCell = row.find('td:eq(3)');
         var $statusCell = row.find('td:eq(4)');
 
-        // Lakukan permintaan AJAX ke server untuk mendapatkan data latency dan status
         $.ajax({
-          url: '/services/monitoring/api?type=local', // Ganti dengan URL API yang sesuai
+          url: '/services/monitoring/api?type=local',
           data: { ip: ip },
           success: function(response) {
-            console.log(response)
-            // Isi kolom Latency dan Status dengan data yang diterima dari server
             if (ip in response) {
               var cell = table.cell(row, $latencyCell);
               cell.data(response[ip].latency).draw();

@@ -1,0 +1,44 @@
+{% include '/fe/head.html'%}
+
+<body>
+  {% include '/fe/header.html'%}
+  {% include '/fe/sidebar.html'%}
+  
+  <main id="main" class="main">
+    <section class="section dashboard">
+      <div class="card">
+        <div class="card-body pt-3">
+            <h5 class="card-title">Hotspot Wallet Garden</h5>
+            <p class="text-capitalize">allow port or url access to users who are not logged in</p>
+            <form action="/hotspot/walled-garden" method="POST">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="form-floating">
+                            <textarea class="form-control" placeholder="Address" name="url" id="floatingTextarea" style="height: 100px;"></textarea>
+                            <label for="floatingTextarea">Address</label>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-floating">
+                            <textarea class="form-control" placeholder="port" name="port" id="floatingTextarea" style="height: 100px;"></textarea>
+                            <label for="floatingTextarea">Port</label>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="text">
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+      </div>
+
+    </section>
+
+  </main><!-- End #main -->
+
+</body>
+{% include '/fe/footer.html' %}
+
+</html>

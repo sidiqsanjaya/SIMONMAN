@@ -221,7 +221,7 @@ h6 {
   margin-bottom: 30px;
   border: none;
   border-radius: 5px;
-  box-shadow: 0px 0 30px rgba(1, 41, 112, 0.1);
+  box-shadow: 0px 0 5px rgba(1, 41, 112, 0.1);
 }
 
 .card-header,
@@ -801,18 +801,20 @@ h6 {
 /* Info Cards */
 .dashboard .info-card {
   padding-bottom: 10px;
+  background-color:rgb(232, 244, 254);
+  border-radius: 10px;
 }
 
 .dashboard .info-card h6 {
   font-size: 28px;
   color: #012970;
-  font-weight: 700;
+  font-weight: 500;
   margin: 0;
   padding: 0;
 }
 
 .dashboard .card-icon {
-  font-size: 32px;
+  font-size: 30px;
   line-height: 0;
   width: 64px;
   height: 64px;

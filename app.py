@@ -129,6 +129,10 @@ def monitoring_device():
 def monitoring():
     return render_template('/services/monitor.html', data1=uci.get_static_dhcp())
 
+@app.route('/services/exam', methods=['GET'])
+def allow_specific_web():
+    return render_template('/services/allow_web_exam.html')
+
 @app.route('/hotspot', methods=['GET','POST'])
 def hotspot():
     if not checklogin():
@@ -359,7 +363,7 @@ def api():
         if request.method == 'GET':
             mode = request.args.get('mode')
             if(mode == 'flow'):
-                data = get_latest_bandwidth_data()
+                data = net.get_netdata()
             elif(mode == 'system'):
                 data = get_latest_system_data()
             elif(mode == 'loadbalance-status'):
@@ -378,7 +382,7 @@ def api():
 def install():
     if os.environ.get('first_run') == 'true':
         cd = sys.path[0]
-        # uci.install_ipk(cd)
+        uci.install_ipk(cd)
         cpu_core_str = ",".join(map(str, uci.get_cpu_cores()))
         set_key('.env', 'cpu_cores', cpu_core_str)
 
@@ -402,4 +406,5 @@ if __name__ == '__main__':
         install()
         net.init()
         dns_block_first('load')
+        web_allow_interface_load()
     app.run(debug=os.environ.get('debug'), host=uri, port=port, threaded=True)

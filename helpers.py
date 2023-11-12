@@ -1,4 +1,5 @@
 from datetime import datetime
+import sys
 from sqlalchemy import func, text
 from sqlalchemy.exc import SQLAlchemyError
 from models import *
@@ -14,8 +15,6 @@ max_threads = 5
 def get_latest_bandwidth_data():
     latest_data = db.session.query(
         BandwidthStatus.eth_type,
-        BandwidthStatus.status,
-        BandwidthStatus.speed,
         BandwidthStatus.speed_send,
         BandwidthStatus.speed_recv,
         func.max(BandwidthStatus.timestamp).label('latest_timestamp')
@@ -25,8 +24,6 @@ def get_latest_bandwidth_data():
     for data in latest_data:
         latest_bandwidth_data.append({
             'eth_type': data.eth_type,
-            'status': data.status,
-            'speed': data.speed,
             'speed_send': data.speed_send,
             'speed_recv': data.speed_recv,
             'timestamp': data.latest_timestamp.strftime('%Y-%m-%d %H:%M:%S')
@@ -384,7 +381,28 @@ def dns_block_first(mode):
         os.system('nft delete table ip block_DNS')
     elif mode == 'load':
         dns_block_load()
+
+def web_allow_interface_block(url):
+    print()      
+
+def web_allow_interface_load():
+    cd = sys.path[0]
+    url_allow_exam = cd + '/instance/url_exam_allow.txt'
+    try:
+        with open(url_allow_exam, 'r') as file:
+            # Membaca isi file per baris dan menyimpannya dalam array
+            isi_file = [line.strip() for line in file.readlines()]
+            print(isi_file)
+            os.system('nft delete table ip Block_Interface')
             
+            os.system("nft 'add table ip Block_Interface'")
+
+    except FileNotFoundError:
+        print(f"File '{url_allow_exam}' tidak ditemukan. Membuat file baru...")
+
+        with open(url_allow_exam, 'w') as file:
+            file.write("enabled=false\nInterface=\nUrl=\n")
+
 def scan_ports(host, InRange, ToRange):
     open_ports = {}
 
@@ -406,7 +424,7 @@ def scan_ports(host, InRange, ToRange):
     try:
         ip = socket.gethostbyname(host)
     except socket.gaierror:
-        return false
+        return False
 
     with concurrent.futures.ThreadPoolExecutor(max_threads) as executor:
         results = [executor.submit(scan_port, port) for port in range(InRange, ToRange)]
@@ -414,14 +432,11 @@ def scan_ports(host, InRange, ToRange):
 
 def ping_ips(ip_list):
     results = {}
-    # Fungsi untuk melakukan ping ke alamat IP
-    print(ip_list)
     def ping_ip(ip):
         try:
             result = subprocess.run(['ping', '-c', '1', ip], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=1)
             if result.returncode == 0:
                 output = result.stdout
-                # Mem-parsing hasil ping untuk mendapatkan latency
                 lines = output.split('\n')
                 latency = "N/A"
                 for line in lines:

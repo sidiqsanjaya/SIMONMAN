@@ -8,8 +8,6 @@ from datetime import datetime
 class BandwidthStatus(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     eth_type = db.Column(db.String(255), nullable=False)
-    status = db.Column(db.String(255), nullable=False)
-    speed = db.Column(db.BigInteger, nullable=False)
     speed_send = db.Column(db.BigInteger, nullable=False)
     speed_recv = db.Column(db.BigInteger, nullable=False)
     timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone('Asia/Jakarta')))
