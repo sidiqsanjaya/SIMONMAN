@@ -406,5 +406,5 @@ if __name__ == '__main__':
         install()
         net.init()
         dns_block_first('load')
-        web_allow_interface_load()
+        # filter_interface_ips_load()
     app.run(debug=os.environ.get('debug'), host=uri, port=port, threaded=True)

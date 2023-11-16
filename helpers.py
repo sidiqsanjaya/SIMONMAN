@@ -84,7 +84,6 @@ def get_history(time):
     start_date = datetime.strptime(split[0], '%Y-%m-%d %H:%M:%S')
     end_date = datetime.strptime(split[1], '%Y-%m-%d %H:%M:%S')
     time_difference = (end_date - start_date).total_seconds()
-    print(time_difference)
     if time_difference < 300:
         mode = '%Y-%m-%d %H:%M:%S'
     elif time_difference < 600:
@@ -101,7 +100,6 @@ def get_history(time):
     query_status = text(f"SELECT eth_type, round(abs(avg(speed_send/1000)),2) as 'speed_send', round(avg(speed_recv/1000),2) as 'speed_recv', strftime('%Y-%m-%d %H:%M:%S', timestamp) as 'timestamp' FROM bandwidth_status WHERE timestamp BETWEEN '{split[0]}' AND '{split[1]}' GROUP BY strftime('{mode}', timestamp), eth_type ORDER BY strftime('{mode}', timestamp);")
     query_system = text(f"select round(avg(100-cpu_idle),2) as 'cpu_idle', round(max(ram_total),2) as 'ram_total', round(avg(ram_free),2) as 'ram_free', round(avg(conntrack),2) as 'conntrack', max(userol) as 'userol', max(userhs) as userhs, strftime('%Y-%m-%d %H:%M:%S', timestamp) as 'timestamp' from system WHERE timestamp BETWEEN '{split[0]}' AND '{split[1]}' GROUP BY strftime('{mode}', timestamp) ORDER BY strftime('{mode}', timestamp);")
     query_mwan   = text(f"SELECT interface, round(case when status == 'online' then 1 else 0 end) as 'status', round(case when tracking == 'active' then 1 else 0 end) as 'tracking', percentage, strftime('%Y-%m-%d %H:%M:%S', timestamp) as 'timestamp' FROM load_balance WHERE timestamp BETWEEN '{split[0]}' AND '{split[1]}' GROUP BY strftime('{mode}', timestamp), interface ORDER BY strftime('{mode}', timestamp);")
-    print(query_system)
     all_status = conn.execute(query_status)
     all_system = conn.execute(query_system)
     all_mwan = conn.execute(query_mwan)
@@ -230,7 +228,6 @@ def HS_get_user():
 def HS_update_user(LP, user, ps, tipe):
     conn = db.engine.connect()
     query = text(f"UPDATE hs_user SET username = '{user}', password = '{ps}', tipe = '{tipe}' WHERE username = '{LP}';")
-    print(query)
     conn.execute(query)
     conn.commit()
     conn.close()
@@ -293,8 +290,8 @@ def HS_get_user_qouta():
             dt = int(HSC[item]['download_this_session'])
             ut = int(HSC[item]['upload_this_session'])
             HS_memory(token, user, dt, ut)
-    print(memory_HS_user)
 
+# masih blm jadi ini njir
 def HS_save_user_qouta():
     if len(memory_HS_user) != 0:
         for token, value in memory_HS_user.items():
@@ -354,10 +351,11 @@ def resolve_domain_to_ip(domain):
         return ip_address
     except socket.gaierror:
         return None
+    except socket.herror:
+        return None
 
 def dns_block_mode(mode, url):
     if mode == 'Block':
-        print(url)
         os.system("nft 'add chain ip block_DNS "f'{url}'" { type filter hook forward priority filter; policy accept; }'")
         resolve = resolve_domain_to_ip(url)
         if resolve != None:
@@ -382,24 +380,51 @@ def dns_block_first(mode):
     elif mode == 'load':
         dns_block_load()
 
-def web_allow_interface_block(url):
+def filter_interface_ips_block(url):
     print()      
 
-def web_allow_interface_load():
+def filter_interface_ips_load():
     cd = sys.path[0]
     url_allow_exam = cd + '/instance/url_exam_allow.txt'
     try:
         with open(url_allow_exam, 'r') as file:
-            # Membaca isi file per baris dan menyimpannya dalam array
             isi_file = [line.strip() for line in file.readlines()]
-            print(isi_file)
-            os.system('nft delete table ip Block_Interface')
+
+        line1 = isi_file[0].split('=')[1] #mode
+        line2 = isi_file[1].split('=')[1] #interface
+        line3 = isi_file[2].split('=')[1] #url
+        if line1 == 'true':   
+            os.system('nft delete table inet filter_interface_ips')             
+            os.system("nft 'add table inet filter_interface_ips'")
+            os.system("nft 'add set inet filter_interface_ips allowed_ips { type ipv4_addr; }'")
+            os.system("nft 'add element inet filter_interface_ips allowed_ips { 8.8.8.8, 8.8.4.4, 1.1.1.1, 1.1.0.0, 192.168.1.1 }'")
+            for item in line3.split(', '):
+                domain_ips = resolve_domain_to_ip(item)
+                if domain_ips != None:
+                    for I_domain_ips in domain_ips:
+                        os.system("nft 'add element inet filter_interface_ips allowed_ips { "f'{I_domain_ips}'" }'")
+
+            os.system("nft 'add chain inet filter_interface_ips input { type filter hook input priority 0; }'")
+            os.system("nft 'add chain inet filter_interface_ips forward { type filter hook forward priority 0; }'")
             
-            os.system("nft 'add table ip Block_Interface'")
+            # must udp > icmp > tcp
+            os.system("nft 'add rule inet filter_interface_ips input ip saddr @allowed_ips counter udp sport {53} accept'")
+            os.system("nft 'add rule inet filter_interface_ips input ip saddr @allowed_ips counter ip protocol icmp accept'")
+            os.system("nft 'add rule inet filter_interface_ips input ip saddr @allowed_ips counter tcp sport {icmp, http, https} accept'")
+
+            os.system("nft 'add rule inet filter_interface_ips forward ip saddr @allowed_ips counter udp sport {53} accept'")
+            os.system("nft 'add rule inet filter_interface_ips forward ip saddr @allowed_ips counter ip protocol icmp accept'")
+            os.system("nft 'add rule inet filter_interface_ips forward ip saddr @allowed_ips counter tcp sport {icmp, http, https} accept'")
+
+            # interface =  uci.get_interface()
+            for item in line2.split(', '):
+                if item != '':
+                    os.system("nft 'add rule inet filter_interface_ips input iifname "f'{item}'" ip saddr 192.168.1.0/24 counter drop'")
+
+        else:
+            os.system('nft delete table inet filter_interface_ips')
 
     except FileNotFoundError:
-        print(f"File '{url_allow_exam}' tidak ditemukan. Membuat file baru...")
-
         with open(url_allow_exam, 'w') as file:
             file.write("enabled=false\nInterface=\nUrl=\n")
 
