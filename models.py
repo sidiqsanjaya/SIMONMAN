@@ -57,7 +57,6 @@ class DNS_access(db.Model):
             'url': self.url,
             'num_access': self.num_access,
             'mode': self.mode,
-            # Tambahkan atribut lain yang perlu kamu tampilkan dalam JSON
         }
 
 class URL_monitor(db.Model):
