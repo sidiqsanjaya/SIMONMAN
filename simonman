@@ -1,0 +1,37 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+
+start() {
+    echo "Starting the startup script..."
+
+    # Aktivasi virtual environment
+    venv_path='/root/NDS/cloud/bin/activate_this.py'
+
+    if [ -f "$venv_path" ]; then
+        if ! /bin/sh "$venv_path"; then
+            echo "Error activating virtual environment."
+            exit 1
+        fi
+    else
+        echo "Virtual environment not found at: $venv_path"
+        exit 1
+    fi
+
+    # Jalankan skrip Python
+    python /root/NDS/app.py
+}
+
+stop() {
+    echo "Stopping the startup script..."
+    # Tambahkan tindakan berhenti (jika diperlukan)
+    # Misalnya: pkill -f "/root/NDS/app.py"
+}
+
+restart() {
+    echo "Restarting the startup script..."
+    stop
+    sleep 1
+    start
+}
+
