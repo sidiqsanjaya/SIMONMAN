@@ -213,7 +213,7 @@ def set_opennds_config_WG(url, port):
         ("opennds.@opennds[0].walledgarden_port_list=" f"{port}"),
     ]
     for config_key in configurations:
-        subprocess.run(["uci", "set", f"{config_key}"], check=True)
+        subprocess.run(["uci", "add_list", f"{config_key}"], check=True)
 
     subprocess.run(["uci", "commit", "opennds"], check=True)
     subprocess.run(["/etc/init.d/opennds", "restart"], check=True)
