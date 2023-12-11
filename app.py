@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import crypt
 import os
 from flask import Flask, jsonify, request, redirect, render_template, session, url_for
@@ -14,9 +16,9 @@ import sys
 import time
 import datetime
 
-logging.basicConfig()
-logging.getLogger('sqlalchemy.engine').setLevel(logging.WARNING)
-logging.getLogger('werkzeug').setLevel(logging.INFO)
+logging.basicConfig(filename='/root/NDS/logfile.log', level=logging.ERROR)
+logging.getLogger('sqlalchemy.engine').setLevel(logging.ERROR)
+logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
 app = Flask(__name__)
 app.app_context()
@@ -96,7 +98,10 @@ def get_dns_logs():
     query = DNS_access.query.order_by(DNS_access.num_access.desc())
 
     if search:  # Jika ada kata kunci pencarian
-        query = query.filter(DNS_access.url.like(f"%{search}%"))
+        query = query.filter(
+            (DNS_access.url.like(f"%{search}%")) |
+            (DNS_access.mode == search)
+        )
 
     total_items = query.count()
     end = min(start + length, total_items)
@@ -292,7 +297,7 @@ def cron():
                     hsa= int(hs['client_list_length'])
                 db_sent = System(cpu_idle=value['cpu_idle'], ram_total=value['ram_total'], ram_free=value['ram_free'], conntrack=value['conntrack'], userol=uci.get_leased(), userhs=hsa)
             else:
-                db_sent = BandwidthStatus(eth_type=key, status=value['status'], speed=value['speed'], speed_send=value['send'], speed_recv=value['recev'])
+                db_sent = BandwidthStatus(eth_type=key, speed_send=value['send'], speed_recv=value['recev'])
             db.session.add(db_sent)
             db.session.commit()
         
@@ -407,4 +412,4 @@ if __name__ == '__main__':
         net.init()
         dns_block_first('load')
         # filter_interface_ips_load()
-    app.run(debug=os.environ.get('debug'), host=uri, port=port, threaded=True)
+    app.run(debug=False, host=uri, port=port, threaded=True)
