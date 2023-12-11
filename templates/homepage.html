@@ -493,7 +493,7 @@
                     interfaceData[item].eth_upload.push(Math.abs(data[item].recev/1000));
                     interfaceData[item].time.push(jam());
 
-                    if (interfaceData[item].eth_down.length >= 120) {
+                    if (interfaceData[item].eth_down.length >= 360) {
                         interfaceData[item].eth_down = interfaceData[item].eth_down.slice(1);
                         interfaceData[item].eth_upload = interfaceData[item].eth_upload.slice(1);
                         interfaceData[item].time = interfaceData[item].time.slice(1);
