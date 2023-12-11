@@ -83,9 +83,9 @@
                     "data": "mode",
                     "render": function (data, type, row) {
                         if (data === 'Block') {
-                            return '<i class="fas fa-lock fa-beat text-danger fa-lg"></i>';
+                            return '<i class="fas fa-lock fa-beat text-danger fa-lg"></i> Block';
                         } else if (data === 'Unblock') {
-                            return '<i class="fas fa-lock-open text-success"></i>';
+                            return '<i class="fas fa-lock-open text-success"></i> Unblock';
                         } else {
                             return data;
                         }
@@ -102,6 +102,7 @@
                       buttonHtml += '<input type="hidden" name="mode" value="' + action + '">';
                       buttonHtml += '<button class="btn ' + buttonClass + '" type="submit">' + action + '</button>';
                       buttonHtml += '</form>';
+
 
                       return buttonHtml;
                   }
