@@ -254,6 +254,24 @@ def HS_user_onlogin(user, passw):
         else:
             return False, 'User profile Disable', 0, 0, 0, 0, 0, 0, 0
 
+def HS_get_profile_data(tipe):
+    conn = db.engine.connect()
+    query = text(f"SELECT * FROM hs_profile WHERE tipe = '{tipe}'")
+    query = conn.execute(query)
+    conn.close()
+    data = []
+    for item in query:
+        data.append({
+            'tipe': item.tipe,
+            'session': item.session,
+            'status': item.mode,
+            'down_rate': item.down_rate,
+            'up_rate': item.up_rate,
+            'down_qouta': item.down_qouta,
+            'up_qouta': item.up_qouta
+        })
+    return data
+
 memory_HS_user = {}
 def HS_memory(token, user, dt, ut, mod=0):
     if mod == 0 :

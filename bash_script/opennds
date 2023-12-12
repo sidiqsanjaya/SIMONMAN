@@ -21,3 +21,4 @@ config opennds
 	option maxclients '2000'
 	option walledgarden_fqdn_list ''
 	option walledgarden_port_list ''
+	option sso_url ''

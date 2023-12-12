@@ -9,8 +9,8 @@
       <div class="card">
         <div class="card-body pt-3">
             <h5 class="card-title">Hotspot User Profile</h5>
-            <button class="btn btn-primary" id="modal" data-toggle="modal">Add</button>
-            <table class="table datatable" id="table">
+            <button class="btn btn-primary"  hidden id="modal" data-toggle="modal">Add</button>
+            <table class="table" id="table">
                 <thead> 
                     <tr>
                       <th scope="col">Username</th>
@@ -41,7 +41,7 @@
         </div>
       </div>
       <!-- Modal untuk menampilkan detail data -->
-<div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel" aria-hidden="true">
+      <div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
       <div class="modal-content">
           <div class="modal-header">
@@ -83,7 +83,9 @@
           </div>
       </div>
   </div>
-</div>
+      </div>
+
+
     </section>
 
   </main><!-- End #main -->
@@ -91,7 +93,24 @@
 </body>
 {% include '/fe/footer.html' %}
 <script>
-  // Fungsi untuk menangani peristiwa ketika tombol "Aksi" diklik
+    $(document).ready(function() {
+      var table = $('#table').DataTable({
+        dom: 'Blfrtip',
+        "buttons": [
+                {
+                    text: 'Add',
+                    action: function ( e, dt, node, config ) {
+                      $('#modal').click();
+                    },
+                    attr: {
+                        style: 'background-color: green !important; border-color: green !important; color: white !important;'
+                    },
+                    enabled: true
+                }
+        ]
+      });
+    });
+
   $(document).ready(function() {
     $('#modal').click( function () {
       var element = document.getElementById("button");

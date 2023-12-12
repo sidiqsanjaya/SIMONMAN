@@ -170,7 +170,7 @@ def get_opennds_config():
     }
     return organized_data
 
-def set_opennds_config(enable, GWname, GWport, GWinterf, GWurl, passthrought, Mclient, Drate, Urate, Dqouta, Uqouta, FasRemoteIp, FasRemotePort, cd):
+def set_opennds_config(enable, GWname, GWport, GWinterf, GWurl, passthrought, Mclient, Drate, Urate, Dqouta, Uqouta, FasRemoteIp, FasRemotePort, cd, sso):
     if enable == 'on':
         enable = 1
     else:
@@ -179,6 +179,9 @@ def set_opennds_config(enable, GWname, GWport, GWinterf, GWurl, passthrought, Mc
         passthrought = 1
     else:
         passthrought = 0
+    if sso == "":
+        sso = '-'
+
     configurations = [
         ("opennds.@opennds[0].enabled=" f"{enable}"),
         ("opennds.@opennds[0].debuglevel=1"),
@@ -199,7 +202,8 @@ def set_opennds_config(enable, GWname, GWport, GWinterf, GWurl, passthrought, Mc
         ("opennds.@opennds[0].uploadrate="f"{Urate}"),
         ("opennds.@opennds[0].uploadquota="f"{Uqouta}"),
         ("opennds.@opennds[0].statuspath="f"{cd}""/bash_script/client_params.sh"),
-        ("opennds.@opennds[0].max_page_size=10096")
+        ("opennds.@opennds[0].max_page_size=10096"),
+        ("opennds.@opennds[0].sso_url="f"{sso}")
     ]
     for config_key in configurations:
         subprocess.run(["uci", "set", f"{config_key}"], check=True)

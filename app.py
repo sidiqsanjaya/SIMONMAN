@@ -2,6 +2,7 @@
 
 import crypt
 import os
+import re
 from flask import Flask, jsonify, request, redirect, render_template, session, url_for
 from dotenv import load_dotenv, set_key
 import urllib.parse
@@ -15,8 +16,9 @@ import logging
 import sys
 import time
 import datetime
+import requests
 
-logging.basicConfig(filename='/root/NDS/logfile.log', level=logging.ERROR)
+# logging.basicConfig(filename='/root/NDS/logfile.log', level=logging.ERROR)
 logging.getLogger('sqlalchemy.engine').setLevel(logging.ERROR)
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
@@ -154,8 +156,10 @@ def hotspot():
         Urate  = request.form['Urate']
         Dqouta = request.form['Dquota']
         Uqouta = request.form['Uquota']
+        ssourl = request.form['ssourl']
+        print(ssourl)
         cd = sys.path[0]
-        uci.set_opennds_config(enable, GWname, GWport, GWinterf[0], GWurl, passthrought, Mclient, Drate, Urate, Dqouta, Uqouta, GWinterf[1], port, cd)
+        uci.set_opennds_config(enable, GWname, GWport, GWinterf[0], GWurl, passthrought, Mclient, Drate, Urate, Dqouta, Uqouta, GWinterf[1], port, cd, ssourl)
         return redirect(url_for('hotspot'))
     return render_template('/hotspot/hs_homepage.html', interface=uci.get_interface(), data=uci.get_opennds_config())
     
@@ -222,6 +226,8 @@ def hotspot_walled_garden():
 @app.route('/hotspot/login', methods=['GET', 'POST'])
 def hotspot_login():
     tipe = True
+    config_nds = uci.get_opennds_config()
+    ssourl = config_nds['opennds']['sso_url']
     fas =  request.args.get('fas')
     if fas:
         if request.method == 'GET':
@@ -235,7 +241,7 @@ def hotspot_login():
                 else:
                     data_dict[item] = None
             sp = urllib.parse.unquote(data_dict['gatewayname']).split('Node:')
-            return render_template('/hotspot/hs_login.html', fas=fas, name=sp, error=tipe)
+            return render_template('/hotspot/hs_login.html', fas=fas, name=sp, ssourl=ssourl, error=tipe)
     elif request.method == 'POST':
         username = str(request.form['username'])
         password = str(request.form['password'])
@@ -261,7 +267,67 @@ def hotspot_login():
 
             mode = 'mac'
             sp = urllib.parse.unquote(data_dict['gatewayname']).split('Node:')
-            status, tipe, uname, passw,  session, down_rate, up_rate, down_qouta, up_qouta  =HS_user_onlogin(username, password)
+            
+            
+            if  ssourl != '-':
+                params_data = {
+                    'username': username,
+                    'password': password,
+                    'service' : 'moodle_mobile_app'
+                }
+ 
+                ssourl_token = f"{ssourl}/login/token.php"
+                get_token_uid = requests.get(ssourl_token, params=params_data)
+                if get_token_uid.status_code == 200:
+                    get_token = get_token_uid.json()
+                    if 'errorcode' in get_token:
+                        status = False
+                        tipe = get_token['error']
+                    elif 'token' in get_token:
+                        params_data_2 = {
+                            'wstoken' : get_token['token'],
+                            'moodlewsrestformat' : 'json',
+                            'wsfunction' : 'core_user_get_users_by_field',
+                            'field' : 'id',
+                            'values[0]': 2
+                        }
+                        ssourl_server = f"{ssourl}/webservice/rest/server.php"
+                        get_usertipe = requests.get(ssourl_server, params=params_data_2)
+                        get_usertipe = get_usertipe.json()
+
+                        string = get_usertipe[0]['firstname']
+                        pattern = re.compile(r'^X')
+
+                        if get_usertipe[0]['department'] != '':
+                            typeuser = get_usertipe[0]['department']
+                        elif pattern.search(string):
+                            typeuser = 'siswa'
+                        else:
+                            typeuser = 'guru'
+                        sett = HS_get_profile_data(typeuser)
+                        if len(sett) != 0:
+                            if sett[0]['status'] == 'Enable':
+                                status = True
+                                session = sett[0]['session']
+                                tipe = typeuser
+                                username = f"moodle ({get_usertipe[0]['fullname']})"
+                                down_rate = sett[0]['down_rate']
+                                down_qouta= sett[0]['down_qouta']
+                                up_rate   = sett[0]['up_rate']
+                                up_qouta  = sett[0]['up_qouta']
+                            else:
+                                status = False
+                                tipe = 'User profile Disable'
+                        else:
+                            status = False
+                            tipe = f"User profile not found for user {get_usertipe[0]['department']}"
+                        # return get_usertipe
+                    else:
+                        status, tipe, uname, passw,  session, down_rate, up_rate, down_qouta, up_qouta  =HS_user_onlogin(username, password)   
+
+
+            else:    
+                status, tipe, uname, passw,  session, down_rate, up_rate, down_qouta, up_qouta  =HS_user_onlogin(username, password)
             if status:
                 if mode == "mac":
                     token = data_dict['clientmac']
@@ -275,6 +341,7 @@ def hotspot_login():
                 return render_template('/hotspot/hs_login.html', fas=fas, name=sp, error=tipe)
     else:
         return jsonify({'error': 'Request tidak dapat ditemukan'}), 405
+
 
 min1 = 0
 min2 = 0
@@ -386,6 +453,7 @@ def api():
 
 def install():
     if os.environ.get('first_run') == 'true':
+        print('Installing...')
         cd = sys.path[0]
         uci.install_ipk(cd)
         cpu_core_str = ",".join(map(str, uci.get_cpu_cores()))
@@ -395,6 +463,7 @@ def install():
         set_key('.env', 'ether', eth_str)
 
         set_key('.env', 'first_run', 'false')
+        print("Instaling done!")
 
 @app.errorhandler(404)
 def page_not_found(error):
@@ -406,10 +475,9 @@ def page_not_found(error):
 
 if __name__ == '__main__':    
     with app.app_context():
-        # URL_monitor.__table__.drop(db.engine)
         db.create_all()
         install()
         net.init()
         dns_block_first('load')
         # filter_interface_ips_load()
-    app.run(debug=False, host=uri, port=port, threaded=True)
+    app.run(debug=True, host=uri, port=port, threaded=True)
