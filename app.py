@@ -370,7 +370,10 @@ def cron():
         
         data_mwan3 = uci.get_mwan_status()
         for key, value in data_mwan3.items():
-            db_sent = LoadBalance(interface=key, status=value['status'], tracking=value['tracking'], percentage=value['percentage'])
+            if 'tracking' in value:
+                db_sent = LoadBalance(interface=key, status=value['status'], tracking=value['tracking'], percentage=value['percentage'])
+            else:
+                db_sent = LoadBalance(interface=key, status=value['status'], tracking='error', percentage=value['percentage'])
             db.session.add(db_sent)
             db.session.commit()
 
