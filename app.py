@@ -157,7 +157,6 @@ def hotspot():
         Dqouta = request.form['Dquota']
         Uqouta = request.form['Uquota']
         ssourl = request.form['ssourl']
-        print(ssourl)
         cd = sys.path[0]
         uci.set_opennds_config(enable, GWname, GWport, GWinterf[0], GWurl, passthrought, Mclient, Drate, Urate, Dqouta, Uqouta, GWinterf[1], port, cd, ssourl)
         return redirect(url_for('hotspot'))
@@ -173,7 +172,7 @@ def hotspot_user():
         pss = request.form['password']
         tipe = request.form['tipe']
         tipe2 = request.form['username2']
-        print(tipe)
+
         if mode == 'add':
             HS_add_user(user, pss, tipe)
         elif mode == 'edit':
@@ -310,7 +309,7 @@ def hotspot_login():
                                 status = True
                                 session = sett[0]['session']
                                 tipe = typeuser
-                                username = f"moodle ({get_usertipe[0]['fullname']})"
+                                username = f"SSO ({get_usertipe[0]['fullname']})"
                                 down_rate = sett[0]['down_rate']
                                 down_qouta= sett[0]['down_qouta']
                                 up_rate   = sett[0]['up_rate']
@@ -384,7 +383,7 @@ def cron():
         HS_get_user_qouta()
         if min1 == 0 or (time_unix - min1) >= 32:
             min1 = time_unix
-            HS_save_user_qouta()
+            # HS_save_user_qouta()
         if min2 == 0 or (time_unix - min2) >= 60:
             min2 = time_unix
             # print(f"Memperbarui sec5 ke {min2}")

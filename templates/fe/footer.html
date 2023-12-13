@@ -22,3 +22,32 @@
     // $('body').toggleClass('toggle-sidebar')
   </script>
   <script src="/static/js/main.js"></script>
+
+  <!-- auto show or hidden nav-item -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // Mendapatkan path dari URL
+      const path = window.location.pathname;
+    
+      // Mendapatkan semua elemen anchor dalam sidebar
+      const sidebarLinks = document.querySelectorAll("#sidebar-nav a");
+    
+      // Loop melalui setiap elemen anchor
+      sidebarLinks.forEach(function(link) {
+        // Mendapatkan path dari href anchor
+        const linkPath = link.getAttribute("href");
+    
+        // Mengecek apakah path dari URL sama persis dengan path anchor
+        if (path === linkPath) {
+          // Menambahkan kelas "active" ke elemen anchor
+          link.classList.add("active");
+    
+          // Jika elemen anchor memiliki parent yang merupakan elemen collapse, kita juga buka parent tersebut
+          const parentCollapse = link.closest(".collapse");
+          if (parentCollapse) {
+            parentCollapse.classList.add("show");
+          }
+        }
+      });
+    });
+    </script>
