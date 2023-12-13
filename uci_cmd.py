@@ -20,10 +20,6 @@ def install_ipk(dir):
         "rm /etc/config/opennds",
         "cp "f"{dir}""/bash_script/opennds /etc/config",
         "cp "f"{dir}""/static/image/cover.jpg /etc/opennds/htdocs",
-        "cp "f"{dir}""/static/vendor/bootstrap/css/bootstrap.css /etc/opennds/htdocs",
-        "cp "f"{dir}""/static/vendor/bootstrap/js/bootstrap.bundle.min.js /etc/opennds/htdocs",
-        "cp "f"{dir}""/static/css/style.css /etc/opennds/htdocs",
-        "cp "f"{dir}""/static/js/main.js /etc/opennds/htdocs",
         "uci set dhcp.@dnsmasq[0].logfacility=/tmp/dnsmasq.log",
         "uci set dhcp.@dnsmasq[0].logqueries=1",
         "uci commit dhcp"
