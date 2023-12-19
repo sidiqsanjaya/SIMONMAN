@@ -4,6 +4,7 @@ import crypt
 import os
 import re
 from flask import Flask, jsonify, request, redirect, render_template, session, url_for
+from flask_session import Session
 from dotenv import load_dotenv, set_key
 import urllib.parse
 from databases import db
@@ -19,12 +20,15 @@ import datetime
 import requests
 
 # logging.basicConfig(filename='/root/NDS/logfile.log', level=logging.ERROR)
+logging.getLogger('session_logger').setLevel(logging.DEBUG)
 logging.getLogger('sqlalchemy.engine').setLevel(logging.ERROR)
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
 app = Flask(__name__)
 app.app_context()
 load_dotenv()
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('sqlite_database')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 uri = os.environ.get('url')
@@ -38,8 +42,8 @@ db.init_app(app)
 def homepage():
     if not checklogin():
         return redirect('/login')
-    model, dd, da = uci.board()
-    return render_template('homepage.html', model=model, arch=da, desc=dd)
+    model, dd, da, cpu = uci.board()
+    return render_template('homepage.html', model=model, arch=da, cpu=cpu, desc=dd)
 
 @app.route('/Online-client', methods=['GET', 'POST'])
 def user_online():
@@ -157,7 +161,6 @@ def hotspot():
         Dqouta = request.form['Dquota']
         Uqouta = request.form['Uquota']
         ssourl = request.form['ssourl']
-        print(ssourl)
         cd = sys.path[0]
         uci.set_opennds_config(enable, GWname, GWport, GWinterf[0], GWurl, passthrought, Mclient, Drate, Urate, Dqouta, Uqouta, GWinterf[1], port, cd, ssourl)
         return redirect(url_for('hotspot'))
@@ -173,7 +176,7 @@ def hotspot_user():
         pss = request.form['password']
         tipe = request.form['tipe']
         tipe2 = request.form['username2']
-        print(tipe)
+
         if mode == 'add':
             HS_add_user(user, pss, tipe)
         elif mode == 'edit':
@@ -310,7 +313,7 @@ def hotspot_login():
                                 status = True
                                 session = sett[0]['session']
                                 tipe = typeuser
-                                username = f"moodle ({get_usertipe[0]['fullname']})"
+                                username = f"SSO ({get_usertipe[0]['fullname']})"
                                 down_rate = sett[0]['down_rate']
                                 down_qouta= sett[0]['down_qouta']
                                 up_rate   = sett[0]['up_rate']
@@ -370,7 +373,10 @@ def cron():
         
         data_mwan3 = uci.get_mwan_status()
         for key, value in data_mwan3.items():
-            db_sent = LoadBalance(interface=key, status=value['status'], tracking=value['tracking'], percentage=value['percentage'])
+            if 'tracking' in value:
+                db_sent = LoadBalance(interface=key, status=value['status'], tracking=value['tracking'], percentage=value['percentage'])
+            else:
+                db_sent = LoadBalance(interface=key, status=value['status'], tracking='error', percentage=value['percentage'])
             db.session.add(db_sent)
             db.session.commit()
 
@@ -381,7 +387,7 @@ def cron():
         HS_get_user_qouta()
         if min1 == 0 or (time_unix - min1) >= 32:
             min1 = time_unix
-            HS_save_user_qouta()
+            # HS_save_user_qouta()
         if min2 == 0 or (time_unix - min2) >= 60:
             min2 = time_unix
             # print(f"Memperbarui sec5 ke {min2}")
@@ -476,6 +482,7 @@ def page_not_found(error):
 if __name__ == '__main__':    
     with app.app_context():
         db.create_all()
+        Session(app)
         install()
         net.init()
         dns_block_first('load')

@@ -20,10 +20,6 @@ def install_ipk(dir):
         "rm /etc/config/opennds",
         "cp "f"{dir}""/bash_script/opennds /etc/config",
         "cp "f"{dir}""/static/image/cover.jpg /etc/opennds/htdocs",
-        "cp "f"{dir}""/static/vendor/bootstrap/css/bootstrap.css /etc/opennds/htdocs",
-        "cp "f"{dir}""/static/vendor/bootstrap/js/bootstrap.bundle.min.js /etc/opennds/htdocs",
-        "cp "f"{dir}""/static/css/style.css /etc/opennds/htdocs",
-        "cp "f"{dir}""/static/js/main.js /etc/opennds/htdocs",
         "uci set dhcp.@dnsmasq[0].logfacility=/tmp/dnsmasq.log",
         "uci set dhcp.@dnsmasq[0].logqueries=1",
         "uci commit dhcp"
@@ -115,8 +111,54 @@ def board():
         elif line.startswith('DISTRIB_ARCH='):
             DA = line.split('=')[1].strip().strip().strip("'")
 
+    with open('/proc/cpuinfo', 'r') as file:
+        cpuinfo = file.read()
+    model_name_line = [line for line in cpuinfo.split('\n') if 'model name' in line.lower()]
+    if model_name_line:
+        model_name_value = model_name_line[0].split(':')[1].strip()
+    else:
+        model_name_value = 'cpu not found on cpuinfo'
+
     MN = data['model']['name']
-    return MN, DD, DA
+    cpuname = model_name_value
+    return MN, DD, DA, cpuname
+
+def boardstatus(mode):
+    if mode == 'cpu':
+        command1 = ["top", "-bn1"]
+        command2 = ["awk", '/^CPU/{print $2,$4,$6,$8,$10,$12,$14}']
+
+        process1 = subprocess.Popen(command1, stdout=subprocess.PIPE)
+        output = subprocess.check_output(command2, stdin=process1.stdout, text=True, shell=False).strip().replace("%", "").split(' ')
+        return output
+    
+    elif mode == 'mem':
+        def convert_kb_to_mb(kb_str):
+            kb_value = int(kb_str.replace("K", ""))
+            mb_value = round(kb_value / 1024, 1)   # 1 MB = 1024 KB
+            return mb_value
+        command1 = ["top", "-bn1"]
+        command2 = ["awk", '/^Mem/{print $2,$4,$6,$8,$10}']
+
+        process1 = subprocess.Popen(command1, stdout=subprocess.PIPE)
+        output = subprocess.check_output(command2, stdin=process1.stdout, text=True, shell=False).strip().split(' ')
+        output = [convert_kb_to_mb(value) for value in output]
+        return output
+    
+    elif mode == 'uptime':
+        output = subprocess.check_output(['uptime'], text=True).strip().split(',  ')[0]
+        return output
+    
+    elif mode == 'load':
+        command1 = ["top", "-bn1"]
+        command2 = ["awk", '/^Load/{print $3,$4,$5,$6}']
+
+        process1 = subprocess.Popen(command1, stdout=subprocess.PIPE)
+        output = subprocess.check_output(command2, stdin=process1.stdout, text=True, shell=False).strip().split(' ')
+        return output
+    
+    else:
+        return False
 
 def get_interface():
     output = subprocess.check_output(["uci", "show", "network"], universal_newlines=True)

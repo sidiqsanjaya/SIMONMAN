@@ -117,31 +117,103 @@
                       </div>
                     </div>
                 </div>
+                
                 <div class="card-body">
                   <h6 class="card-title">Device Detail</h6>
                   <div class="row">
                     <div class="col">
                       <div class="sales-card">
                         <div class="card info-card card-body">
-                          <p class="card-title"></p>
-                          <ul class="list-unstyled">
-                            <li>Model : {{model}}</li>
-                            <li>Target : {{arch}}</li>
-                            <li>Firmware : {{desc}}</li>
-                          </ul>
+                          <div class="row mb-3"></div>
+                          <div class="row mb-1">
+                            <label class="col-sm-3">Architecture</label>
+                            <div class="col">{{cpu}}</div>
+                          </div>
+                          <div class="row mb-1">
+                            <label class="col-sm-3">Model</label>
+                            <div class="col">{{model}}</div>
+                          </div>
+                          <div class="row mb-1">
+                            <label class="col-sm-3">Target</label>
+                            <div class="col">{{arch}}</div>
+                          </div>
+                          <div class="row mb-1">
+                            <label class="col-sm-3">Firmware</label>
+                            <div class="col">{{desc}}</div>
+                          </div>
                         </div>
                       </div>
                     </div>
+
                     <div class="col">
                       <div class="sales-card">
                         <div class="card info-card card-body">
-                          <p class="card-title"></p>
-                          <ul class="list-unstyled">
-                            <li></li>
-                            <li>under construction</li>
-                            <li>\</li>
-                            <li>\</li>
-                          </ul>
+                            <div class="row mb-3"></div>
+                            <div class="row mb-1">
+                              <label class="col-sm-3">Uptime</label>
+                              <div class="col" id="uptime"></div>
+                            </div>
+                            <div class="row  mb-1">
+                              <label class="col-sm-3">CPU Usage</label>
+                              <div class="col"> 
+                                <div class="progress mt-1">
+                                  <div class="progress-bar" id="cpu_user" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" data-toggle="tooltip" data-placement="top" title="USER">100%</div>
+                                </div>
+                              </div>
+                              <div class="col"> 
+                                <div class="progress mt-1">
+                                  <div class="progress-bar" id="cpu_system" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" data-toggle="tooltip" data-placement="top" title="SYSTEM">100%</div>
+                                </div>
+                              </div>
+                              <div class="col"> 
+                                <div class="progress mt-1">
+                                  <div class="progress-bar" id="cpu_nic" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" data-toggle="tooltip" data-placement="top" title="NIC">100%</div>
+                                </div>
+                              </div>
+                              <div class="col"> 
+                                <div class="progress mt-1">
+                                  <div class="progress-bar" id="cpu_idle" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" data-toggle="tooltip" data-placement="top" title="IDLE">100%</div>
+                                </div>
+                              </div>
+                              <div class="col"> 
+                                <div class="progress mt-1">
+                                  <div class="progress-bar" id="cpu_io" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" data-toggle="tooltip" data-placement="top" title="IO">100%</div>
+                                </div>
+                              </div>
+                              <div class="col"> 
+                                <div class="progress mt-1">
+                                  <div class="progress-bar" id="cpu_irq" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" data-toggle="tooltip" data-placement="top" title="IRQ">100%</div>
+                                </div>
+                              </div>
+                              <div class="col"> 
+                                <div class="progress mt-1">
+                                  <div class="progress-bar" id="cpu_sirq" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" data-toggle="tooltip" data-placement="top" title="SIRQ">100%</div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div class="row mb-1">
+                              <label class="col-sm-3">CPU Load</label>
+                              <div class="col" data-toggle="tooltip" data-placement="top" title="1 Minute" id="load_1"></div>
+                              <div class="col" data-toggle="tooltip" data-placement="top" title="5 Minute" id="load_5"></div>
+                              <div class="col" data-toggle="tooltip" data-placement="top" title="15 Minute" id="load_15"></div>
+                              <div class="col" data-toggle="tooltip" data-placement="top" title="Service Running" id="load_proc"></div>
+                            </div> 
+
+                            <div class="row  mb-1">
+                              <label class="col-sm-3">Memory Usage</label>
+                              <div class="col"> 
+                                <div class="progress mt-1">
+                                  <div class="progress-bar text-dark" id="mem_used" role="progressbar" style="width: 10%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" data-toggle="tooltip" data-placement="top" title="USED">100%</div>
+                                  <div class="progress-bar bg-success text-dark" id="mem_shared" role="progressbar" style="width: 30%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" data-toggle="tooltip" data-placement="top" title="SHARE">100%</div>
+                                  <div class="progress-bar bg-secondary text-dark" id="mem_buffer" role="progressbar" style="width: 30%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" data-toggle="tooltip" data-placement="top" title="BUFFER">100%</div>
+                                  <div class="progress-bar bg-info text-dark" id="mem_cache" role="progressbar" style="width: 30%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" data-toggle="tooltip" data-placement="top" title="CACHE">100%</div>
+                                  <div class="progress-bar bg-light text-dark" id="mem_free" role="progressbar" style="width: 20%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" data-toggle="tooltip" data-placement="top" title="FREE">100%</div>
+                                </div>
+                              </div>
+                              
+                            </div>
+
                         </div>
                       </div>
                     </div>
@@ -220,7 +292,7 @@
               </div>
             </div>
 
-          </div><!-- End Bordered Tabs -->
+          </div>
         </div>
       </div>
     </section>
@@ -275,10 +347,11 @@
     var datetime =  h + ":"  + m + ":"  + s;
     return datetime;
   }
+  
   $(document).ready(function () {   
-      window.onerror = function(message, url, lineNumber) {   
-          return true; 
-      };  
+      // window.onerror = function(message, url, lineNumber) {   
+      //     return true; 
+      // };  
 
       var interfaceData = {};
       var first = false;
@@ -399,6 +472,70 @@
                     document.getElementById("ramtotal").innerHTML = (data[0].ram_total/1000).toFixed(2) + ' Gb';
                     document.getElementById("useronline").innerHTML = data[0].userol;
                     document.getElementById("userhotspot").innerHTML = data[0].userhs;
+                    
+                    // uptime
+                    document.getElementById("uptime").innerHTML = data[0].uptime;
+                    // cpu_user
+                    document.getElementById("cpu_user").setAttribute('aria-valuenow', data[0]['cpu_detail'][0])
+                    document.getElementById("cpu_user").innerHTML =  `${data[0]['cpu_detail'][0]}%`;
+                    document.getElementById("cpu_user").style.width = `${data[0]['cpu_detail'][0]}%`;
+                    // cpu_system
+                    document.getElementById("cpu_system").setAttribute('aria-valuenow', data[0]['cpu_detail'][1])
+                    document.getElementById("cpu_system").innerHTML =  `${data[0]['cpu_detail'][1]}%`;
+                    document.getElementById("cpu_system").style.width = `${data[0]['cpu_detail'][1]}%`;
+                    // cpu_nic
+                    document.getElementById("cpu_nic").setAttribute('aria-valuenow', data[0]['cpu_detail'][2])
+                    document.getElementById("cpu_nic").innerHTML =  `${data[0]['cpu_detail'][2]}%`;
+                    document.getElementById("cpu_nic").style.width = `${data[0]['cpu_detail'][2]}%`;
+                    // cpu_idle
+                    document.getElementById("cpu_idle").setAttribute('aria-valuenow', data[0]['cpu_detail'][3])
+                    document.getElementById("cpu_idle").innerHTML =  `${data[0]['cpu_detail'][3]}%`;
+                    document.getElementById("cpu_idle").style.width = `${data[0]['cpu_detail'][3]}%`;
+                    // cpu_io
+                    document.getElementById("cpu_io").setAttribute('aria-valuenow', data[0]['cpu_detail'][4])
+                    document.getElementById("cpu_io").innerHTML =  `${data[0]['cpu_detail'][4]}%`;
+                    document.getElementById("cpu_io").style.width = `${data[0]['cpu_detail'][4]}%`;
+                    // cpu_irq
+                    document.getElementById("cpu_irq").setAttribute('aria-valuenow', data[0]['cpu_detail'][5])
+                    document.getElementById("cpu_irq").innerHTML =  `${data[0]['cpu_detail'][5]}%`;
+                    document.getElementById("cpu_irq").style.width = `${data[0]['cpu_detail'][5]}%`;
+                    // cpu_sirq
+                    document.getElementById("cpu_sirq").setAttribute('aria-valuenow', data[0]['cpu_detail'][6])
+                    document.getElementById("cpu_sirq").innerHTML =  `${data[0]['cpu_detail'][6]}%`;
+                    document.getElementById("cpu_sirq").style.width = `${data[0]['cpu_detail'][6]}%`;
+                    // cpu load
+                    document.getElementById("load_1").innerHTML = `${data[0]['load'][0]}`;
+                    document.getElementById("load_5").innerHTML = `${data[0]['load'][1]}`;
+                    document.getElementById("load_15").innerHTML = `${data[0]['load'][2]}`;
+                    document.getElementById("load_proc").innerHTML = `${data[0]['load'][3]}`;
+                    // memory
+                    const mem_total = data[0]['mem'].reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+
+                    // mem_used
+                    document.getElementById("mem_used").setAttribute('aria-valuenow', data[0]['mem'][0])
+                    document.getElementById("mem_used").setAttribute('aria-valuemax', mem_total)
+                    document.getElementById("mem_used").innerHTML =  `${data[0]['mem'][0]}MB`;
+                    document.getElementById("mem_used").style.width = `${data[0]['mem'][0]}%`;
+                    // mem_shared
+                    document.getElementById("mem_shared").setAttribute('aria-valuenow', data[0]['mem'][1])
+                    document.getElementById("mem_shared").setAttribute('aria-valuemax', mem_total)
+                    document.getElementById("mem_shared").innerHTML =  `${data[0]['mem'][1]}MB`;
+                    document.getElementById("mem_shared").style.width = `${data[0]['mem'][1]}%`;
+                    // mem_buffer
+                    document.getElementById("mem_buffer").setAttribute('aria-valuenow', data[0]['mem'][2])
+                    document.getElementById("mem_buffer").setAttribute('aria-valuemax', mem_total)
+                    document.getElementById("mem_buffer").innerHTML =  `${data[0]['mem'][2]}MB`;
+                    document.getElementById("mem_buffer").style.width = `${data[0]['mem'][2]}%`;
+                    // mem_cache
+                    document.getElementById("mem_cache").setAttribute('aria-valuenow', data[0]['mem'][3])
+                    document.getElementById("mem_cache").setAttribute('aria-valuemax', mem_total)
+                    document.getElementById("mem_cache").innerHTML =  `${data[0]['mem'][3]}MB`;
+                    document.getElementById("mem_cache").style.width = `${data[0]['mem'][3]}%`;
+                    // mem_free
+                    document.getElementById("mem_free").setAttribute('aria-valuenow', data[0]['mem'][4])
+                    document.getElementById("mem_free").setAttribute('aria-valuemax', mem_total)
+                    document.getElementById("mem_free").innerHTML =  `${data[0]['mem'][4]}MB`;
+                    document.getElementById("mem_free").style.width = `${data[0]['mem'][4]}%`;
                   }
                   
               },
@@ -433,11 +570,7 @@
                     <div class="col">
                       <div class="d-flex">
                         <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                          <i class="bi bi-globe2 ${color}" rel="tooltip" title="${item.interface}"></i>
-                        </div>
-                        <div class="ps-3">
-                          <h5>${item.tracking}</h5>
-                          <span class="text-success small pt-1 fw-bold">${item.percentage}%</span>
+                          <i class="bi bi-globe2 ${color}" data-toggle="tooltip" data-placement="top" title="${item.interface} : ${item.tracking} : ${item.percentage}%"></i>
                         </div>
                       </div>
                     </div>
@@ -445,6 +578,9 @@
 
                   loadbalancerContainer.appendChild(div);
                 }); 
+                $(document).ready(function () {
+                  $('[data-toggle="tooltip"]').tooltip();
+                });
               },
               error: function (error) {
                   console.error('Error:', error);
@@ -786,7 +922,7 @@
       
       call();
       flowhistory();
-      setInterval(call, 5000);
+      setInterval(call, 2000);
 
       var defaultInterval = document.getElementById("intervalSelect").value;
       var selectedInterval = defaultInterval * 1000;

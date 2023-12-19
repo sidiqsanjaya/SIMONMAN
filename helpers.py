@@ -52,6 +52,10 @@ def get_latest_system_data():
             'conntrack': data.conntrack,
             'userol': data.userol,
             'userhs': data.userhs,
+            'uptime': uci.boardstatus('uptime'),
+            'load': uci.boardstatus('load'),
+            'mem': uci.boardstatus('mem'),
+            'cpu_detail': uci.boardstatus('cpu'),
             'timestamp': data.latest_timestamp.strftime('%Y-%m-%d %H:%M:%S')
         })
     return latest_System_data

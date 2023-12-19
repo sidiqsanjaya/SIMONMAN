@@ -22,3 +22,30 @@
     // $('body').toggleClass('toggle-sidebar')
   </script>
   <script src="/static/js/main.js"></script>
+
+  <!-- auto show or hidden nav-item -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const path = window.location.pathname;
+      const sidebarLinks = document.querySelectorAll("#sidebar-nav a");
+
+      sidebarLinks.forEach(function(link) {
+        const linkPath = link.getAttribute("href");
+        if (path === linkPath) {
+          link.classList.add("active");
+          const parentCollapse = link.closest(".collapse");
+          if (parentCollapse) {
+            parentCollapse.classList.add("show");
+          }
+        }
+      });
+    });
+    </script>
+    <script>
+      var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-toggle="tooltip"]'))
+      var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+      })
+
+    </script>

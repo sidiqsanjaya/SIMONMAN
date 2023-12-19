@@ -123,32 +123,241 @@ header() {
 	<html lang="en">
 
 	<head>
-	<meta charset="utf-8">
-	<meta content="width=device-width, initial-scale=1.0" name="viewport">
-
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Hotspot Manager</title>
-	<meta content="" name="description">
-	<meta content="" name="keywords">
-
-	<!-- Favicons -->
 	<link href="/cover.jpg" rel="icon">
-	<!-- Google Fonts -->
+	<style media="screen">
+		* {
+		padding: 0;
+		margin: 0;
+		box-sizing: border-box;
+		}
 
-	<!-- Vendor CSS Files -->
-	<link href="/bootstrap.css" rel="stylesheet">
-	<link rel="stylesheet" type="text/css" href="/style.css">
+		body {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 100vh;
+		margin: 0;
 
-	</head>'
+		font-family: 'Poppins', sans-serif;
+		background-color: #000000;
+		}
+
+		#loading-container {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: #fdfdfd;
+		z-index: 1000;
+		}
+
+		#loading-logo {
+		width: 80px;
+		animation: heartbeat 1.5s infinite;
+		transition: opacity 0.5s ease-in-out;
+		}
+
+		@keyframes heartbeat {
+		0% {
+			transform: scale(1);
+		}
+
+		25% {
+			transform: scale(1.1);
+		}
+
+		50% {
+			transform: scale(1);
+		}
+
+		75% {
+			transform: scale(1.1);
+		}
+
+		100% {
+			transform: scale(1);
+		}
+		}
+
+		video {
+		position: fixed;
+		top: 50%;
+		left: 50%;
+		min-width: 100%;
+		min-height: 100%;
+		width: auto;
+		height: auto;
+		z-index: -1;
+		transform: translateX(-50%) translateY(-50%);
+		}
+
+		.background {
+		width: 100%;
+		height: 100vh;
+		position: absolute;
+		top: 0;
+		left: 0;
+		overflow: hidden;
+		
+		z-index: -1;
+		}
+
+		.background .shape {
+		height: 200px;
+		width: 200px;
+		position: absolute;
+		border-radius: 100%;
+		}
+
+		.shape:first-child {
+		background: linear-gradient(
+			#1845ad,
+			#23a2f6
+		);
+		left: -80px;
+		top: -80px;
+		}
+
+		.shape:last-child {
+		background: linear-gradient(
+			to right,
+			#ff512f,
+			#f09819
+		);
+		right: -30px;
+		bottom: -30px;
+		}
+
+		form {
+		background-color: rgba(255, 255, 255, 0.13);
+		border-radius: 10px;
+		backdrop-filter: blur(10px);
+		border: 2px solid rgba(255, 255, 255, 0.1);
+		box-shadow: 0 0 40px rgba(8, 7, 16, 0.6);
+		padding: 20px;
+		width: 100%;
+		max-width: 400px;
+		text-align: center;
+		position: relative;
+		animation: fadeIn 1s ease-out;
+		visibility: hidden;
+		opacity: 0;
+		margin-top: -15%;
+		}
+
+		#login-form {
+		visibility: hidden;
+		opacity: 0;
+		transition: opacity 0.5s ease-in-out;
+		}
+
+		form h3 {
+		font-size: 24px;
+		font-weight: 500;
+		line-height: 32px;
+		margin-bottom: 10px;
+		color: #ffffff;
+		}
+
+		form p {
+		font-size: 14px;
+		color: #ffffff;
+		margin-bottom: 20px;
+		}
+
+		label {
+		display: block;
+		margin-top: 20px;
+		font-size: 16px;
+		font-weight: 500;
+		color: #ffffff;
+		text-align: left;
+		}
+
+		input {
+		display: block;
+		height: 40px;
+		width: 100%;
+		background-color: rgba(255, 255, 255, 0.07);
+		border-radius: 3px;
+		padding: 0 10px;
+		margin-top: 8px;
+		font-size: 14px;
+		font-weight: 300;
+		color: #ffffff;
+		border: none;
+		outline: none;
+		}
+
+		::placeholder {
+		color: #e5e5e5;
+		}
+
+		button {
+		margin-top: 20px;
+		width: 100%;
+		background-color: #ffffff;
+		color: #080710;
+		padding: 15px 0;
+		font-size: 18px;
+		font-weight: 600;
+		border-radius: 5px;
+		cursor: pointer;
+		border: none;
+		outline: none;
+		}
+
+		.alert {
+		font-size: 14px;
+		color: #ffffff;
+		margin-top: 10px;
+		background-color: #ffcc00;
+		padding: 10px;
+		color: #080710;
+		border-radius: 5px;
+		}
+
+		@keyframes fadeIn {
+		from {
+			visibility: visible;
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+		}
+	</style>
+	</head>
+	'
 }
+
 footer(){
-    echo '<a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+    echo "  <script>
+		setTimeout(function () {
+		const loadingContainer = document.getElementById('loading-container');
+		const loadingLogo = document.getElementById('loading-logo');
+		const loginForm = document.getElementById('login-form');
 
-		<script src="/bootstrap.bundle.min.js"></script>
-		<script src="/main.js"></script>
+		loadingLogo.style.opacity = '0';
 
-		</body>
+		setTimeout(function () {
+			loadingContainer.style.display = 'none';
+			loginForm.style.visibility = 'visible';
+			loginForm.style.opacity = '1';
+		}, 500);
+		}, 1000);
 
-	</html>'
+	</script>
+	</body>
+
+	</html>"
 }
 body() {
 
@@ -161,68 +370,40 @@ body() {
 
     elif [ "$status" = "status" ]; then
 			pagebody='
-            <body>
-                <main>
-                    <div class="container">
+			<body>
+			<div id="loading-container">
+				<img id="loading-logo" src="/cover.jpg" alt="Loading">
+			</div>
+			<video autoplay muted loop>
+				<source src="/static/video/login_vid.mp4" type="video/mp4">
+				Your browser does not support the video tag.
+			</video>
+			<div class="background">
+				<div class="shape"></div>
+				<div class="shape"></div>
+			</div>
+			<form id="login-form"  style="visibility: hidden; opacity: 0;"  action="/opennds_deny/" method="GET">
+				<h3>'${gatewaynamecut}'</h3>
+            	<label for="ipAddress">IP / Mac Address</label>
+					<input type="text" id="ipAddress" value="'${ip}' / '${mac}'" readonly>
 
-                    <section class="section register min-vh-50 d-flex flex-column align-items-center justify-content-center">
-                        <div class="container">
-                        <div class="row justify-content-center">
-                            <div class="col col d-flex flex-column align-items-center justify-content-center">
+				<label for="sessionStart to end">Session Start to End</label>
+					<input type="text" value="'${sessionstart}' to '${sessionend}'" readonly>
 
-                            <div class="d-flex justify-content-center py-4">
-                                <a class="logo d-flex align-items-center w-auto">
-                                <img src="/cover.jpg" alt="">
-                                <span class="d-none d-lg-block">'${gatewaynamecut}'</span>
-                                </a>
-                            </div><!-- End Logo -->
+				<label for="downloadRateLimit">Download / Upload Rate Limit</label>
+					<input type="text" id="downloadRateLimit" value="'${download_rate_limit_threshold}' / '${upload_rate_limit_threshold}'" readonly>
 
-                            <div class="card w-200 mb-3">
+				<label for="downloadPacketRate">Download / Upload Packet Rate</label>
+					<input type="text" id="downloadPacketRate" value="'${download_packet_rate}' / '${upload_packet_rate}'" readonly>
 
-                                <div class="card-body">
+				<label for="downloadQuota">Download / Upload Quota</label>
+					<input type="text" id="downloadQuota" value="'${download_quota}' / '${upload_quota}'" readonly>
 
-                                    <div class="pt-1 pb-2">
-                                        <h5 class="card-title text-center pb-0 fs-4">Status</h5>
-                                        <p class="text-center small">Status You Network</p>
-                                    </div>
-
-                                    <form action="/opennds_deny/" method="GET">
-                                    <div class="row g-3">
-										<ul class="list-group">
-											<li class="list-group-item">IP Address: '$ip'</li>
-											<li class="list-group-item">MAC Address: '$mac'</li>
-											<li class="list-group-item">Session Start: '$sessionstart'</li>
-											<li class="list-group-item">Session End: '$sessionend'</li>
-											<li class="list-group-item">Download Rate Limit: '$download_rate_limit_threshold'</li>
-											<li class="list-group-item">Download Packet Rate: '$download_packet_rate'</li>
-											<li class="list-group-item">Download Qouta: '$download_quota'</li>
-											<li class="list-group-item">Download Average Now: '$download_session_avg'</li>
-											<li class="list-group-item">Upload Rate Limit: '$upload_rate_limit_threshold'</li>
-											<li class="list-group-item">Upload Packet Rate: '$upload_packet_rate'</li>
-											<li class="list-group-item">Upload Qouta: '$upload_quota'</li>
-											<li class="list-group-item">Upload Average Now: '$upload_session_avg'</li>
-										</ul>
-
-                                        <div class="col-12">
-                                            <button class="btn btn-primary w-100" type="submit">Log Out</button>
-                                        </div>
-                                        
-                                    </div>
-                                    
-                                </form>
-                                </div>
-                            </div>
-
-                            </div>
-                        </div>
-                        </div>
-
-                    </section>
-
-                    </div>
-                </main>
-				
-			"'
+				<label for="downloadAvgNow">Download / Upload Average Now</label>
+					<input type="text" id="downloadAvgNow" value="'${download_session_avg}' / '${upload_session_avg}'" readonly>
+				<button>Log Out</button>
+				</form>
+			'
         
         echo "$pagebody"
         
