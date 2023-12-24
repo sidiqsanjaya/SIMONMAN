@@ -50,6 +50,7 @@ h6 {
 @media (max-width: 1199px) {
   #main {
     padding: 20px;
+
   }
 }
 
@@ -244,10 +245,11 @@ h6 {
   color: #899bbd;
   font-size: 14px;
   font-weight: 400;
+  padding: 0 20px 20px 20px;
 }
 
 .card-body {
-  padding: 0 20px 0% 20px;
+  padding: 0 20px 10px 20px;
 }
 
 .card-img-overlay {
@@ -634,6 +636,7 @@ h6 {
   #main,
   #footer {
     margin-left: 300px;
+    
   }
 }
 

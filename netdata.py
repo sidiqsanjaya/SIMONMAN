@@ -1,11 +1,13 @@
+import time
 import requests
 import json
 from dotenv import load_dotenv
 import os
+
 load_dotenv()
 
 # URL API Netdata "allmetrics" yang akan digunakan
-netdata_url = 'http://127.0.0.1:19999/api/v1/allmetrics?format=json&names=yes&data=as-collected'
+netdata_url = 'http://127.0.0.1:19999/api/v1/allmetrics?format=json&names=yes&data=as-average'
 chart_data = {}
 chart_net = []
 chart_cpu = []
@@ -59,3 +61,87 @@ def get_netdata():
 
     except requests.exceptions.RequestException as e:
         return 'fail'
+
+
+import subprocess
+import json
+from multiprocessing import Process, Queue
+
+def run_speedtest():
+    result = subprocess.run(["speedtest", "--json", "--share"], capture_output=True, text=True)
+    if result.returncode != 0:
+        return None
+    
+    data = json.loads(result.stdout)
+    return data
+
+
+def get_netdata_speed(queue, mon_ether):
+    while True:
+        try:
+            chart_data_speed = {}
+            response = requests.get(netdata_url)
+            if response.status_code == 200:
+                data = json.loads(response.text)
+                for net in mon_ether:
+                    chart_data_speed[f'{net}'] = {}
+                    if(data[f"net_carrier.{net}"]['dimensions']['carrier']['value'] == 1):
+                        
+                        chart_data_speed[f'{net}']['send'] = data[f"net.{net}"]["dimensions"]["sent"]["value"]
+                        chart_data_speed[f'{net}']['recev'] = data[f"net.{net}"]["dimensions"]["received"]["value"]
+                    else:
+                        chart_data_speed[f'{net}']['send'] = 0
+                        chart_data_speed[f'{net}']['recev'] = 0
+
+            queue.put(chart_data_speed)
+            time.sleep(1.5)
+        except requests.exceptions.RequestException as e:
+            print('fail')
+    
+def run_speedtest_with_netdata(eth, mode):
+    mon_ether = []
+    disable_wan = []
+    if mode == 'all':
+        for key, value in eth.items():
+            mon_ether.append(value['option']['device'])
+    else:
+        for key, value in eth.items():
+            if mode == key:
+                mon_ether.append(value['option']['device'])
+            else:
+                disable_wan.append(key)
+                subprocess.check_output(['mwan3', 'ifdown', key], text=True)
+
+    queue = Queue()
+    netdata_process = Process(target=get_netdata_speed, args=(queue, mon_ether))
+    netdata_process.start()
+
+    speed = run_speedtest()
+
+    netdata_process.terminate()
+    netdata_process.join()
+
+    netdata_speed = {}
+    while not queue.empty():
+        for key, value in queue.get().items():
+            
+            if key not in netdata_speed:
+                netdata_speed[key] = {
+                    'send': [],
+                    'recev': []
+                }
+            netdata_speed[key]['send'].append(abs(value['send']))
+            netdata_speed[key]['recev'].append(abs(value['recev']))
+
+    if disable_wan:
+        for item in disable_wan:
+            subprocess.check_output(['mwan3', 'ifup', item], text=True)
+
+    if speed:
+        data = []
+        data.append({'speedtest': speed, 'log_netdata': netdata_speed})
+        return data
+    else:
+        data = []
+        data.append({'speedtest': [], 'log_netdata': netdata_speed})
+

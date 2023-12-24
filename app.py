@@ -144,6 +144,22 @@ def monitoring():
 def allow_specific_web():
     return render_template('/services/allow_web_exam.html')
 
+@app.route('/network/speedtest')
+def web_speedtest():
+    relevant_data = {key: value for key, value in uci.get_interface().items() if key.startswith('wan')}
+    return render_template('/network/speedtest.html', interface=relevant_data)
+
+@app.route('/network/speedtest/api', methods=['GET'])
+def web_api_speedtest():
+    relevant_data = {key: value for key, value in uci.get_interface().items() if key.startswith('wan')}
+    if not checklogin():
+        return redirect('/login')
+    if request.args.get('available') != 'All':
+        data = net.run_speedtest_with_netdata(relevant_data, request.args.get('available'))
+    else:
+        data = net.run_speedtest_with_netdata(relevant_data, 'all')
+    return jsonify(data)
+
 @app.route('/hotspot', methods=['GET','POST'])
 def hotspot():
     if not checklogin():
@@ -271,7 +287,6 @@ def hotspot_login():
             mode = 'mac'
             sp = urllib.parse.unquote(data_dict['gatewayname']).split('Node:')
             
-            
             if  ssourl != '-':
                 params_data = {
                     'username': username,
@@ -291,14 +306,14 @@ def hotspot_login():
                             'wstoken' : get_token['token'],
                             'moodlewsrestformat' : 'json',
                             'wsfunction' : 'core_user_get_users_by_field',
-                            'field' : 'id',
-                            'values[0]': 2
+                            'field' : 'username',
+                            'values[0]': username.lower()
                         }
                         ssourl_server = f"{ssourl}/webservice/rest/server.php"
                         get_usertipe = requests.get(ssourl_server, params=params_data_2)
                         get_usertipe = get_usertipe.json()
 
-                        string = get_usertipe[0]['firstname']
+                        string = get_usertipe[0]['fullname']
                         pattern = re.compile(r'^X')
 
                         if get_usertipe[0]['department'] != '':
@@ -327,8 +342,6 @@ def hotspot_login():
                         # return get_usertipe
                     else:
                         status, tipe, uname, passw,  session, down_rate, up_rate, down_qouta, up_qouta  =HS_user_onlogin(username, password)   
-
-
             else:    
                 status, tipe, uname, passw,  session, down_rate, up_rate, down_qouta, up_qouta  =HS_user_onlogin(username, password)
             if status:
@@ -344,7 +357,6 @@ def hotspot_login():
                 return render_template('/hotspot/hs_login.html', fas=fas, name=sp, error=tipe)
     else:
         return jsonify({'error': 'Request tidak dapat ditemukan'}), 405
-
 
 min1 = 0
 min2 = 0

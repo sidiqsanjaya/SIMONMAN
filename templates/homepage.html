@@ -349,9 +349,9 @@
   }
   
   $(document).ready(function () {   
-      // window.onerror = function(message, url, lineNumber) {   
-      //     return true; 
-      // };  
+      window.onerror = function(message, url, lineNumber) {   
+          return true; 
+      };  
 
       var interfaceData = {};
       var first = false;
@@ -877,7 +877,7 @@
                                 labels: jsonData.time,
                                 datasets: [
                                     {
-                                        label: 'Recived',
+                                        label: 'Received',
                                         fill: true,
                                         tension: 0.5,
                                         backgroundColor: 'rgb(2, 101, 151, 0.3)',
