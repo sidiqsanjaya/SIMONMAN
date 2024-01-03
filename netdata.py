@@ -64,8 +64,7 @@ def get_netdata():
 
 
 import subprocess
-import json
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, Event
 
 def run_speedtest():
     result = subprocess.run(["speedtest", "--json", "--share"], capture_output=True, text=True)
@@ -76,7 +75,8 @@ def run_speedtest():
     return data
 
 
-def get_netdata_speed(queue, mon_ether):
+def get_netdata_speed(queue, mon_ether, start_event):
+    start_event.set()
     while True:
         try:
             chart_data_speed = {}
@@ -99,6 +99,7 @@ def get_netdata_speed(queue, mon_ether):
             print('fail')
     
 def run_speedtest_with_netdata(eth, mode):
+    start_event = Event()
     mon_ether = []
     disable_wan = []
     if mode == 'all':
@@ -113,8 +114,9 @@ def run_speedtest_with_netdata(eth, mode):
                 subprocess.check_output(['mwan3', 'ifdown', key], text=True)
 
     queue = Queue()
-    netdata_process = Process(target=get_netdata_speed, args=(queue, mon_ether))
+    netdata_process = Process(target=get_netdata_speed, args=(queue, mon_ether, start_event))
     netdata_process.start()
+    start_event.wait()
 
     speed = run_speedtest()
 
@@ -140,8 +142,9 @@ def run_speedtest_with_netdata(eth, mode):
     if speed:
         data = []
         data.append({'speedtest': speed, 'log_netdata': netdata_speed})
-        return data
+        
     else:
         data = []
         data.append({'speedtest': [], 'log_netdata': netdata_speed})
+    return data
 

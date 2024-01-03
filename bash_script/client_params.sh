@@ -249,7 +249,6 @@ header() {
 		animation: fadeIn 1s ease-out;
 		visibility: hidden;
 		opacity: 0;
-		margin-top: -15%;
 		}
 
 		#login-form {

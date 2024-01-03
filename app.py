@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import crypt
+import codecs
 import os
 import re
 from flask import Flask, jsonify, request, redirect, render_template, session, url_for
@@ -18,14 +19,18 @@ import sys
 import time
 import datetime
 import requests
+from werkzeug.utils import secure_filename
 
-# logging.basicConfig(filename='/root/NDS/logfile.log', level=logging.ERROR)
-logging.getLogger('session_logger').setLevel(logging.DEBUG)
-logging.getLogger('sqlalchemy.engine').setLevel(logging.ERROR)
-logging.getLogger('werkzeug').setLevel(logging.ERROR)
+
 
 app = Flask(__name__)
 app.app_context()
+
+logging.getLogger('session_logger').setLevel(logging.DEBUG)
+logging.getLogger('sqlalchemy.engine').setLevel(logging.ERROR)
+logging.getLogger('werkzeug').setLevel(logging.ERROR)
+logging.basicConfig(filename=app.root_path +'/logfile.log', level=logging.ERROR)
+
 load_dotenv()
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
@@ -358,6 +363,44 @@ def hotspot_login():
     else:
         return jsonify({'error': 'Request tidak dapat ditemukan'}), 405
 
+@app.route('/hotspot/editor-login', methods=['GET', 'POST'])
+def hotspot_edit():
+    if not checklogin():
+        return redirect('/login')
+
+    if request.method == 'POST':
+        if request.form['btn'] == 'save':
+            if 'logo' in request.files:
+                logo = request.files['logo']
+                if logo.filename != '':
+                    if logo and allowed_file(logo.filename, {'png', 'jpg', 'jpeg', 'gif'}):
+                        name = 'hs_cover.jpg'
+                        filepath = os.path.join(app.root_path + '/static/image/', name)
+                        logo.save(filepath)
+
+            if 'background' in request.files:
+                background = request.files['background']
+                if background.filename != '':
+                    if background and allowed_file(background.filename, {'png', 'jpg', 'jpeg', 'gif'}):
+                        name = 'hs_background.jpg'
+                        filepath = os.path.join(app.root_path + '/static/image/', name)
+                        background.save(filepath)
+
+            data_html = request.form['html']
+            f = open(app.root_path + "/templates/hotspot/hs_login.html", 'w')
+            f.write(data_html)
+            f.close()
+        if request.form['btn'] == 'reset':
+            f_html = codecs.open(app.root_path + "/templates/hotspot/hs_login.bcp", 'r')
+            f = open(app.root_path + "/templates/hotspot/hs_login.html", 'w')
+            f.write(f_html.read())
+            f.close()
+            print()
+
+        return redirect(url_for('hotspot_edit'))
+    f_html = codecs.open(app.root_path + "/templates/hotspot/hs_login.html", 'r')
+    return render_template('/hotspot/hs_editor.html', data=f_html.read())
+
 min1 = 0
 min2 = 0
 @app.route('/cron')
@@ -469,6 +512,7 @@ def api():
     else:
         return jsonify({'error': 'Unauthorized'}), 401    
 
+
 def install():
     if os.environ.get('first_run') == 'true':
         print('Installing...')
@@ -490,6 +534,7 @@ def page_not_found(error):
 @app.errorhandler(400)
 def page_not_found(error):
     return render_template('/fe/400.html')
+
 
 if __name__ == '__main__':    
     with app.app_context():
