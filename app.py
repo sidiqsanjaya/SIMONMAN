@@ -19,8 +19,6 @@ import sys
 import time
 import datetime
 import requests
-from werkzeug.utils import secure_filename
-
 
 
 app = Flask(__name__)
