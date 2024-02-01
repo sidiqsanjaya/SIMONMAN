@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ene">
 
 <head>
   <meta charset="UTF-8">
-  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{name[0]}}</title>
   <link href="/static/image/hs_cover.jpg" rel="icon">
   <style media="screen">
@@ -22,7 +22,6 @@
       font-family: 'Poppins', sans-serif;
       overflow: hidden;
       background-color: rgb(226, 230, 233);
-      background-image: url("/static/image/hs_background.jpg");
     }
 
     #loading-container {
@@ -110,7 +109,7 @@
     }
 
     form {
-      /* background-color: #f2f2f2; */
+      background-color: #f2f2f2;
       border-radius: 10px;
       backdrop-filter: blur(10px);
       border: 2px solid #f2f2f2;
@@ -120,6 +119,7 @@
       max-width: 400px;
       text-align: center;
       position: relative;
+      margin-top: -10%;
       animation: fadeIn 1s ease-out;
       visibility: hidden;
       opacity: 0;
@@ -295,3 +295,5 @@
     }
   </script>
 </body>
+
+</html>

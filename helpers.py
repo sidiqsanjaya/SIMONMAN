@@ -505,3 +505,7 @@ def ping_ips(ip_list):
         executor.map(ping_ip, ip_list)
 
     return results
+
+def allowed_file(filename, ALLOWED_EXTENSIONS):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+

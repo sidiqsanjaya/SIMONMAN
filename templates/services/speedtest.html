@@ -1,0 +1,241 @@
+{% include '/fe/head.html'%}
+
+<body>
+  {% include '/fe/header.html'%}
+  {% include '/fe/sidebar.html'%}
+  
+  <main id="main" class="main">
+    <section class="section">
+        <div class="card">
+            <div class="card-body">
+              <div class="card-title">Speed Test</div>
+                <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label">Available</label>
+                    <div class="col-sm-8">
+                        <select id="available" class="form-select" required aria-label="Default select example">
+                            <option value="All">All Wan</option>
+                            {% for key, value in interface.items() %}
+                            <option value="{{ key }}">{{ key }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-sm-2">
+                        <button class="btn btn-primary" id="start_test">Start Test</button>
+                    </div>
+                </div>
+                
+                <div class="row" id="speedtestresult" style="display: none">
+                    <hr>
+                    <div class="col-md-3">
+                        <center>
+                            <canvas id="gauge"></canvas>
+                            <p id="ping"></p><p id="latency"></p>
+                        </center>
+                        <div>
+                            <table class="table table-striped">
+                                <tbody>
+                                    <thead>
+                                    <tr>
+                                    <th scope="col" colspan="2">Client</th>
+                                    </tr>
+                                    </thead>
+                                <tr>
+                                    <th scope="row">ISP</th>
+                                    <td id="isp"></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">IP Public</th>
+                                    <td id="client_ip"></td>
+                                </tr>
+                                </tbody>
+                                <tbody>
+                                    <thead>
+                                        <tr>
+                                        <th scope="col" colspan="2">Server</th>
+                                        </tr>
+                                    </thead>
+                                    <tr>
+                                        <th scope="row">Host</th>
+                                        <td id="sponsor"></td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">location</th>
+                                        <td id="location"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-sm-9">
+                        <div id="card">
+                            <div id="card-body info-card">
+                                <div id="card-title">
+                                    Graph Wan's
+                                </div>
+                                <div  id="graph"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                </div>
+                
+            </div>
+        </div>
+      </div>
+    </section>
+
+  </main><!-- End #main -->
+
+</body>
+{% include '/fe/footer.html' %}
+<script>
+    $(document).ready(function () { 
+        var gaugespeed = new Chart(document.querySelector('#gauge'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Download', 'Upload'],
+                datasets: [{
+                    label: 'Speedtest',
+                    data: [],
+                    backgroundColor: ['rgb(255, 99, 132)', 'rgb(54, 162, 235)'],
+                    hoverOffset: 4
+                }]
+            },
+            option: {
+                responsive: true,
+                
+            },
+        });
+
+        function updateChart(newData) {
+            gaugespeed.data.datasets[0].data = newData;
+            gaugespeed.update();
+        }
+
+        function start_test() {
+            var e = document.getElementById('available');
+            var b = document.getElementById("start_test");
+            $.ajax({
+                url: '/network/speedtest/api?mode=speedtest&available=' + e.value,
+                method: 'GET',
+                dataType: 'json',
+                beforeSend: function () {
+                    $("#speedtestresult").hide();
+                    b.disabled = true;
+                    b.innerHTML = '<span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span> Loading...';
+                    e.disabled = true;
+                },
+                success: function (data) {
+                    b.innerHTML = 'Start Test';
+                    b.disabled = false;
+                    e.disabled = false;
+                    $("#speedtestresult").show();
+                    console.log(data)
+                    var speedtest = data[0].speedtest;
+                    var netdata   = data[0].log_netdata;
+                    var graphwan = document.getElementById('graph');
+                    while (graphwan.firstChild) {
+                        graphwan.removeChild(graphwan.firstChild);
+                    }
+
+                    if(Object.keys(netdata).length === 0){
+                        swal.fire({
+                            position: "top-end",
+                            icon: "error",
+                            title: "Failed To Get Netdata, its Oke Some Data Will Show",
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+
+                    }else{
+                        for(var i in netdata) { 
+                            var div = document.createElement('graph');
+                            div.className = 'col';
+                            div.innerHTML = `
+                            <div id="card card-body">
+                                <div id="card-title">${i}</div>    
+                                <canvas id="available${i}" style="max-height: 250px; display: block; box-sizing: border-box; height: 182px; width: 364px;"></canvas>
+                            </div>
+                                `;
+                            graphwan.appendChild(div);
+                        };
+
+                        for (var key in netdata){
+                            keyy = netdata[key]
+                            labels = []
+                            for (var i in keyy.recev){
+                                labels.push('')
+                            }
+                            var canvas = document.getElementById('available'+key).getContext('2d');
+                                new Chart(canvas, {
+                                    type: 'line',
+                                    data: {
+                                        labels: labels,
+                                        datasets: [
+                                            {
+                                                label: 'Received',
+                                                fill: true,
+                                                tension: 0.5,
+                                                backgroundColor: 'rgb(2, 101, 151, 0.3)',
+                                                borderColor: 'rgb(2, 101, 151)',
+                                                borderWidth: 1,
+                                                radius: 0,
+                                                data: keyy.send.reverse(),
+                                            },
+                                            {
+                                                label: 'Send',
+                                                fill: true,
+                                                tension: 0.5,
+                                                backgroundColor: 'rgb(73, 158, 9, 0.3)',
+                                                borderColor: 'rgb(73, 158, 9)',
+                                                borderWidth: 1,
+                                                radius: 0,
+                                                data: keyy.recev,
+                                            }
+                                        ],
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        interaction: {
+                                            mode: 'index',
+                                            intersect: false
+                                        }
+                                    }
+                                });
+                        }
+
+                    }
+                    
+                    if(speedtest.length === 0){
+                        swal.fire({
+                            position: "top-end",
+                            icon: "error",
+                            title: "Failed To Get Speed Test, its Oke Some Data Will Show",
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+
+                    }else{
+
+                    document.getElementById("isp").innerHTML = speedtest.client.isp;
+                    document.getElementById("client_ip").innerHTML = speedtest.client.ip;
+                    document.getElementById("sponsor").innerHTML = speedtest.server.sponsor;
+                    document.getElementById("location").innerHTML = speedtest.server.name + ', '+ speedtest.server.country;
+                    document.getElementById("latency").innerHTML = 'Ping: '+speedtest.ping+'ms';
+                    document.getElementById("ping").innerHTML = 'Latency: '+speedtest.server.latency+'ms';
+                    // document.getElementById("share").innerHTML = speedtest.share;
+                    var gaugespeedData = [speedtest.upload, speedtest.download];
+                    updateChart(gaugespeedData);
+                    }
+                },
+                error: function (error) {
+                    console.error('Error:', error);
+                }
+            });
+        }
+
+        $('#start_test').on('click', start_test);
+    });
+</script>
+
+</html>
