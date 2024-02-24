@@ -1,21 +1,20 @@
 import time
 import requests
 import json
-from dotenv import load_dotenv
 import os
 
-load_dotenv()
 
 # URL API Netdata "allmetrics" yang akan digunakan
-netdata_url = 'http://127.0.0.1:19999/api/v1/allmetrics?format=json&names=yes&data=as-average'
+netdata_url = 'http://127.0.0.1:19999/api/v1/allmetrics?format=json&names=yes&data=as-collected'
 chart_data = {}
 chart_net = []
 chart_cpu = []
-def init():
-    cpu = os.environ.get('cpu_cores').split(',')
+
+def init(app):
+    cpu = app.config["DEV_CPU"]
     for a in cpu:
         chart_cpu.append(a)
-    eth = os.environ.get('ether').split(',')
+    eth = app.config["DEV_ETHER"]
     for a in eth:
         chart_net.append(a)
 
@@ -24,13 +23,12 @@ def get_netdata():
     try:
         # Lakukan permintaan HTTP GET ke URL Netdata "allmetrics"
         response = requests.get(netdata_url)
-        
         # Periksa apakah permintaan berhasil (status code 200)
         if response.status_code == 200:
             # Parse response JSON ke dalam bentuk dictionary Python
             data = json.loads(response.text)
             for net in chart_net:
-                if(data[f"net_carrier.{net}"]['dimensions']['carrier']['value'] == 1):
+                if f"net_carrier.{net}" in data and data[f"net_carrier.{net}"]['dimensions']['carrier']['value'] == 1:
                     chart_data[f'{net}'] = {}
                     chart_data[f'{net}']['status'] = "Up"
                     chart_data[f'{net}']['speed'] = data[f'net_speed.{net}']['dimensions']['speed']['value']

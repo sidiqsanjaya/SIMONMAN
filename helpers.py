@@ -304,20 +304,22 @@ def HS_memory(token, user, dt, ut, mod=0):
 
 def HS_get_user_qouta():
     HS = uci.HS_status()
-    HSC = HS['clients']
-    for item in HSC:
-        if  HSC[item]['state'] == 'Authenticated':
-            user = HSC[item]['custom']['username']
-            token = HSC[item]['token']
-            dt = int(HSC[item]['download_this_session'])
-            ut = int(HSC[item]['upload_this_session'])
-            HS_memory(token, user, dt, ut)
+    if HS != 'none':
+        HSC = HS['clients']
+        for item in HSC:
+            if  HSC[item]['state'] == 'Authenticated':
+                user = HSC[item]['custom']['username']
+                token = HSC[item]['token']
+                dt = int(HSC[item]['download_this_session'])
+                ut = int(HSC[item]['upload_this_session'])
+                HS_memory(token, user, dt, ut)
+    
 
 # masih blm jadi ini njir
 def HS_save_user_qouta():
     if len(memory_HS_user) != 0:
         for token, value in memory_HS_user.items():
-            print(value)
+            # print(value)
             if value['user'] != '-':
                 exits_users = HS_user.query.get(value['user'])
                 if exits_users:

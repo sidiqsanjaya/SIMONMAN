@@ -9,29 +9,26 @@ from uci import Uci
 
 
 def install_ipk(dir):
-    configurations = [
-        "opkg update",
-        "opkg install netdata",
-        "opkg remove dnsmasq",
-        "opkg install dnsmasq-full",
-        "opkg install opennds",
-        "opkg install luci-app-mwan3",
-        "chmod +x "f"{dir}""/bash_script/client_params.sh",
-        "rm /etc/config/opennds",
-        "cp "f"{dir}""/bash_script/opennds /etc/config",
-        "cp "f"{dir}""/static/image/cover.jpg /etc/opennds/htdocs",
-        "uci set dhcp.@dnsmasq[0].logfacility=/tmp/dnsmasq.log",
-        "uci set dhcp.@dnsmasq[0].logqueries=1",
-        "uci commit dhcp"
-    ]
-
-    for config_key in configurations:
+    subprocess.run('opkg update', stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
+    list_package = ["netdata", "dnsmasq-full", "opennds", "luci-app-mwan3"]
+    conf_opennds = ["chmod +x "f"{dir}""/bash_script/client_params.sh", "rm /etc/config/opennds", "cp "f"{dir}""/bash_script/opennds /etc/config", "cp "f"{dir}""/static/image/cover.jpg /etc/opennds/htdocs"]
+    conf_dnsmasq = ["uci set dhcp.@dnsmasq[0].logfacility=/tmp/dnsmasq.log", "uci set dhcp.@dnsmasq[0].logqueries=1", "uci commit dhcp"]
+    for install in list_package:
         try:
-            result = subprocess.run(config_key, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
+            result = subprocess.run(f'opkg list-installed | grep -c "{install}"', stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
             if result.returncode == 0:
-                print(result.stdout)
-            else:
-                print(result.stderr)
+                # print(result.stdout)
+                if(result.stdout == 0):
+                    if(install == "dnsmasq-full"):
+                       subprocess.run('opkg remove dnsmasq', stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
+                    if(install == "opennds"):
+                        for conf in conf_opennds:
+                            subprocess.run(conf, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
+                    if(install == "dnsmasq"):
+                        for conf in conf_dnsmasq:
+                            subprocess.run(conf, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
+
+                    subprocess.run(f'opkg install {install}', stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
         except Exception as e:
             print(str(e))
 
@@ -281,42 +278,47 @@ def HS_death(token):
         return "Already Deauth"
 
 def HS_status():
-    command = ['ndsctl', 'json']
     try: 
-        output = subprocess.check_output(command, text=True)
-        output = output.strip()
-        data_dict = json.loads(output)
+        output = subprocess.check_output(['ndsctl', 'json'], text=True)
+        print('anjir')
+        output2 = output.strip()
         
-        for mac, client_data in data_dict['clients'].items():
-            if client_data['session_start'] != '0':
-                start = int(client_data.get('session_start', ''))
-                client_data['session_start'] = datetime.fromtimestamp(start).strftime('%Y-%m-%d %H:%M:%S')
-            else:
-                client_data['session_start'] = '-'
-            if client_data['session_end'] != 'null':
-                end = int(client_data.get('session_end', ''))
-                client_data['session_end'] = datetime.fromtimestamp(end).strftime('%Y-%m-%d %H:%M:%S')
-            else:
-                client_data['session_end'] = '-'
-            if client_data['last_active'] != 'null':
-                last = int(client_data.get('last_active', ''))
-                client_data['last_active'] = datetime.fromtimestamp(last).strftime('%Y-%m-%d %H:%M:%S')
-            else:
-                client_data['last_active'] = '-'
-            if client_data['custom'] != 'none':
-                encoded_custom = client_data.get('custom', '')
-                decoded_custom = base64.b64decode(encoded_custom).decode('utf-8')
-                if decoded_custom != 'na':
+        data_dict = json.loads('output2')
+        
+        
+        # for mac, client_data in data_dict['clients'].items():
+        #     if client_data['session_start'] != '0':
+        #         start = int(client_data.get('session_start', ''))
+        #         client_data['session_start'] = datetime.fromtimestamp(start).strftime('%Y-%m-%d %H:%M:%S')
+        #     else:
+        #         client_data['session_start'] = '-'
+        #     if client_data['session_end'] != 'null':
+        #         end = int(client_data.get('session_end', ''))
+        #         client_data['session_end'] = datetime.fromtimestamp(end).strftime('%Y-%m-%d %H:%M:%S')
+        #     else:
+        #         client_data['session_end'] = '-'
+        #     if client_data['last_active'] != 'null':
+        #         last = int(client_data.get('last_active', ''))
+        #         client_data['last_active'] = datetime.fromtimestamp(last).strftime('%Y-%m-%d %H:%M:%S')
+        #     else:
+        #         client_data['last_active'] = '-'
+        #     if client_data['custom'] != 'none':
+        #         encoded_custom = client_data.get('custom', '')
+        #         decoded_custom = base64.b64decode(encoded_custom).decode('utf-8')
+        #         if decoded_custom != 'na':
 
-                    custom_attributes = {}
-                    for attribute in decoded_custom.split('&'):
-                        key, value = attribute.split('=')
-                        custom_attributes[key] = value
-                    client_data['custom'] = custom_attributes
-                else:
-                    client_data['custom'] = {'username':'-'}
+        #             custom_attributes = {}
+        #             for attribute in decoded_custom.split('&'):
+        #                 key, value = attribute.split('=')
+        #                 custom_attributes[key] = value
+        #             client_data['custom'] = custom_attributes
+        #         else:
+        #             client_data['custom'] = {'username':'-'}
         return data_dict
     except subprocess.CalledProcessError as e:
+        return "none"
+    except Exception as e:
+        print("Error occurred in HS_status():", e)
         return "none"
 
 def HS_count_qouta():
@@ -452,6 +454,3 @@ def get_static_dhcp():
         except:
             break
     return host
-
-def ucitest():
-    return u.get('network')
