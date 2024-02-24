@@ -3,35 +3,37 @@
 START=99
 
 start() {
-    echo "Starting the startup script..."
+    logger "Starting the simonman"
 
-    # Aktivasi virtual environment
-    venv_path='/root/NDS/cloud/bin/activate_this.py'
+    # Activate virtual environment
+    venv_path='/root/cloud'
 
-    if [ -f "$venv_path" ]; then
-        if ! /bin/sh "$venv_path"; then
-            echo "Error activating virtual environment."
+    if [ -d "$venv_path" ]; then
+        if [ -f "$venv_path/bin/activate" ]; then
+            . "$venv_path/bin/activate"
+        else
+            logger "Activate script not found in virtual environment."
             exit 1
         fi
     else
-        echo "Virtual environment not found at: $venv_path"
+        logger "Virtual environment not found at: $venv_path"
         exit 1
     fi
+    logger "Activate script success"
 
-    # Jalankan skrip Python
+    # Run the Python script
     python /root/NDS/app.py
 }
 
 stop() {
-    echo "Stopping the startup script..."
-    # Tambahkan tindakan berhenti (jika diperlukan)
-    # Misalnya: pkill -f "/root/NDS/app.py"
+    logger "Stopping the simonman"
+    # Add stop actions if necessary
+    pkill -f "/root/NDS/app.py"
 }
 
 restart() {
-    echo "Restarting the startup script..."
+    logger "Restarting the simonman"
     stop
     sleep 1
     start
 }
-

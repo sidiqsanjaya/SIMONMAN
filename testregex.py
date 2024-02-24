@@ -1,22 +1,35 @@
-import subprocess
-import json
-import netdata
-def get_speedtest_results():
-    # Jalankan speedtest dan dapatkan hasil dalam format JSON
-    result = subprocess.run(["speedtest", "--json"], capture_output=True, text=True)
+import threading
+import time
 
-    # Pastikan perintah berhasil dijalankan
-    if result.returncode != 0:
-        print(f"Error running speedtest: {result.stderr}")
-        return None
 
-    # Parse hasil JSON
-    data = json.loads(result.stdout)
+start_time = [0, 0, 0]
+task0 = 5
+task1 = 10
+task2 = 20
+def background_task():
+    while True:
+        # Catat waktu awal eksekusi
+        for Stime in range(len(start_time)):
+            
+            if start_time[Stime] == 0:
+                start_time[Stime] = time.time()
+        
+        if time.time() - start_time[0] > task0:
+            print('task0')
+            start_time[0] = time.time()
 
-    return data
+        if time.time() - start_time[1] > task1:
+            print('task1')
+            start_time[1] = time.time()
+        
+        if time.time() - start_time[2] > task2:
+            print('task2')
+            start_time[2] = time.time()
 
-# Gunakan fungsi di atas
-data = get_speedtest_results()
-if data is not None:
-    print(data)  # Cetak seluruh data
-    print(data["download"])  # Cetak kecepatan download saja
+
+background_thread = threading.Thread(target=background_task)
+# Set daemon agar thread berhenti ketika program utama berhenti
+# background_thread.daemon = True
+
+background_thread.start()
+# background_task()

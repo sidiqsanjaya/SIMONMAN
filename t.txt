@@ -1,3 +1,7 @@
+cd NDS
+source cloud/bin/activate
+python app.py
+
 nft delete table inet filter
 nft add table inet filter
 nft add set inet filter allowed_ips { type ipv4_addr \; }

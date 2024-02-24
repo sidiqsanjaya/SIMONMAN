@@ -275,6 +275,13 @@
                   <canvas id="realtimeBarChart" style="max-height: 250px; display: block; box-sizing: border-box; height: 182px; width: 364px;"></canvas>  
                 </div>
               </div>
+              <br>
+              <div class="sales-card">
+                <div class="card-body" style="background-color:rgba(170, 216, 253, 0.2); border-radius: 10px">
+                  <h5 class="card-title">Session/Conntract</h5>
+                  <canvas id="realtimeBarChartsession" style="max-height: 250px; display: block; box-sizing: border-box; height: 182px; width: 364px;"></canvas>  
+                </div>
+              </div>
             </div>
 
             <div class="tab-pane fade" id="bordered-flow-history" role="tabpanel" aria-labelledby="flow-history-tab">
@@ -354,6 +361,8 @@
       };  
 
       var interfaceData = {};
+      var sessionData = [];
+      var timeData = []
       var first = false;
       
       var ctx1 = document.getElementById('realtimehorizontalbar').getContext('2d');
@@ -452,6 +461,59 @@
                       title: {
                           display: true,
                           text: 'Speed - Mbps'
+                      }
+                  }
+              }
+          }
+      });
+
+      var ctx3 = document.getElementById('realtimeBarChartsession').getContext('2d');
+      var horizontalChart3 = new Chart(ctx3, {
+          type: 'line',
+          data: {
+              labels: [],
+              datasets: [
+                  {
+                      label: 'Session',
+                      fill: true,
+                      tension: 0.5,
+                      backgroundColor: 'rgb(2, 101, 151, 0.3)',
+                      borderColor: 'rgb(2, 101, 151)',
+                      borderWidth: 1,
+                      radius: 0,
+                      data: [],
+                  },
+                  // {
+                  //     label: 'Download-Mbps',
+                  //     fill: true,
+                  //     tension: 0.5,
+                  //     backgroundColor: 'rgb(73, 158, 9, 0.3)',
+                  //     borderColor: 'rgb(73, 158, 9)',
+                  //     borderWidth: 1,
+                  //     radius: 0,
+                  //     data: [],
+                  // }
+              ],
+          },
+          options: {
+              responsive: true,
+              interaction: {
+                  mode: 'index',
+                  intersect: false
+              },
+              scales: {
+                  x: {
+                      display: true,
+                      title: {
+                          display: false,
+                          text: 'Timestamp'
+                      }
+                  },
+                  y: {
+                      display: true,
+                      title: {
+                          display: true,
+                          text: 'Session'
                       }
                   }
               }
@@ -625,14 +687,22 @@
                               time: []
                           };
                     }
+
                     interfaceData[item].eth_down.push(Math.abs(data[item].send/1000));
                     interfaceData[item].eth_upload.push(Math.abs(data[item].recev/1000));
                     interfaceData[item].time.push(jam());
-
+                    
                     if (interfaceData[item].eth_down.length >= 360) {
                         interfaceData[item].eth_down = interfaceData[item].eth_down.slice(1);
                         interfaceData[item].eth_upload = interfaceData[item].eth_upload.slice(1);
                         interfaceData[item].time = interfaceData[item].time.slice(1);
+                    }
+                  }else{
+                    sessionData.push(data[item].conntrack)
+                    timeData.push(jam());
+                    if(sessionData.length > 360){
+                      sessionData.slice(1);
+                      timeData.slice(1);
                     }
                   }
                 }
@@ -651,10 +721,15 @@
                     uploadDataset.data = uploadData;
                     downloadDataset.data = downloadData;
 
+                    horizontalChart3.data.datasets[0].data = sessionData;
+                    horizontalChart3.data.labels = timeData;
+
                     uploadDataset.label = 'Upload-Mbps';
                     downloadDataset.label = 'Download-Mbps';
                     horizontalChart.update();
                     horizontalChart2.update();
+                    horizontalChart3.update();
+                    
 
                   }else{
                     

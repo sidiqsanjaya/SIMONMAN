@@ -46,8 +46,11 @@
                     <h5 class="card-title text-center pb-0 fs-4">Login to Your Account</h5>
                     <p class="text-center small">Enter your password to login</p>
                   </div>
+                  {% if redirect %}
+                  <form action="/login?redirect={{redirect}}" method="POST" class="row g-3 needs-validation" novalidate>
+                  {% else %}
                   <form action="/login" method="POST" class="row g-3 needs-validation" novalidate>
-                    
+                  {% endif %}
                     <div class="col-12">
                       {% if error != '' %}
                       <div class="alert alert-warning bg-warning border-0" role="alert">
