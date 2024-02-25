@@ -1,0 +1,128 @@
+{% include '/fe/head.html'%}
+
+<body>
+  {% include '/fe/header.html'%}
+  {% include '/fe/sidebar.html'%}
+  
+  <main id="main" class="main">
+    <section class="section dashboard">
+      <div class="card">
+        <div class="card-body pt-3">
+            <h5 class="card-title">Reboot</h5>
+            <form id="form" action="/system/reboot" method="POST">
+              <div class="row">
+                <div class="col">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="checkreb" id="invalidCheck">
+                    <label class="form-check-label" for="invalidCheck">
+                      I agree to reboot the device
+                    </label>
+                  </div>
+                  <div class="d-grid gap-2 mt-3">
+                    <button class="btn btn-primary" type="submit" name="mode" value="reboot" disabled>Reboot</button>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="checkshut" id="invalidCheck2">
+                    <label class="form-check-label" for="invalidCheck2">
+                      I agree to turn off the device
+                    </label>
+                  </div>
+                  <div class="d-grid gap-2 mt-3">
+                    <button class="btn btn-danger" type="submit" name="mode" value="shutdown" disabled>Shutdown</button>
+                  </div> 
+                </div>
+              </div>
+            </form>
+        </div>
+      </div>
+
+    </section>
+
+  </main><!-- End #main -->
+  <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="loadingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-body text-center">
+          <i class="fa fa-spinner fa-spin fa-3x"></i>
+          <p>Loading...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+{% include '/fe/footer.html' %}
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+  const checkboxReboot = document.querySelector('input[name="checkreb"]');
+  const checkboxShutdown = document.querySelector('input[name="checkshut"]');
+  const buttonReboot = document.querySelector('.btn-primary');
+  const buttonShutdown = document.querySelector('.btn-danger');
+
+  function checkFormreboot() {
+    if (checkboxReboot.checked) {
+      buttonReboot.disabled = false;
+      checkboxShutdown.checked = false;
+      buttonShutdown.disabled = true;
+    } else {
+      buttonReboot.disabled = true;
+    }
+  }
+
+  function checkFormshutdown() {
+    if (checkboxShutdown.checked) {
+      buttonShutdown.disabled = false;
+      checkboxReboot.checked = false;
+      buttonReboot.disabled = true;
+    } else {
+      buttonShutdown.disabled = true;
+    }
+  }
+
+  checkboxReboot.addEventListener('change', checkFormreboot);
+  checkboxShutdown.addEventListener('change', checkFormshutdown);
+
+  document.querySelector('form').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    // Show loading modal
+    $('#loadingModal').modal('show');
+
+    const mode = event.submitter.value;
+
+    const formData = new FormData(this);
+    formData.append('mode', mode);
+
+    const checkDeviceStatus = () => {
+            fetch('/ping')
+            .then(pingResponse => {
+                if (pingResponse.ok) {
+                    // alert('Device is up again!');
+                    window.location.href = '/homepage';
+                } else {
+                    setTimeout(checkDeviceStatus, 5000);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                setTimeout(checkDeviceStatus, 5000);
+            });
+        };
+    
+
+    setTimeout(() => {
+        $('#loadingModal .modal-content').addClass('bg-danger');
+        $('#loadingModal .modal-body').html('<p>Device not going up, please check</p>');
+    }, 2 * 60 * 1000); // 5 minutes
+
+    fetch("/system/reboot", {
+        method: 'POST',
+        body: formData
+    })
+    setTimeout(checkDeviceStatus, 2000);
+  });
+});
+</script>
+
+</html>
