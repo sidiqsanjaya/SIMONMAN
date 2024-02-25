@@ -1,4 +1,5 @@
 from datetime import datetime
+import signal
 import sys
 from sqlalchemy import func, text
 from sqlalchemy.exc import SQLAlchemyError
@@ -511,3 +512,27 @@ def ping_ips(ip_list):
 def allowed_file(filename, ALLOWED_EXTENSIONS):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def shutdown_flask():
+    os.kill(os.getpid(), signal.SIGINT)
+
+def restart_server():
+    os.system('reboot')
+def shutdown_server():
+    os.system('poweroff')
+
+class system:
+    def rebootorshut(request):
+        if  'checkreb' in request.form and request.form['checkreb'] == 'on':
+            if request.form['mode'] == 'reboot':
+                restart_server()
+                shutdown_flask()
+                return 'reboot'
+        elif 'checkshut' in request.form and request.form['checkshut'] == 'on':
+            if request.form['mode'] == 'shutdown':
+                shutdown_server()
+                shutdown_flask()
+                return 'shutdown flask'
+    def sytem_password(request):
+        print()
+    def system(request):
+        print()

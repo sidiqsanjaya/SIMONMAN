@@ -32,7 +32,6 @@ limiter = Limiter(
     default_limits=["10 per minute"],
     storage_uri="memory://",
 )
-
 # logging.getLogger('session_logger').setLevel(logging.DEBUG)
 # logging.getLogger('sqlalchemy.engine').setLevel(logging.ERROR)
 # logging.getLogger('werkzeug').setLevel(logging.ERROR)
@@ -147,8 +146,8 @@ def dns_logs(request):
     return jsonify(response)
 
   
-@app.route('/services/monitoring', defaults={'mode': None},  methods=['GET'])
-@app.route('/services/monitoring<mode>',  methods=['GET', 'POST'])
+@app.route('/services/monitoring', defaults={'mode': None},  methods=['GET', 'POST'])
+@app.route('/services/monitoring/<mode>',  methods=['GET', 'POST'])
 def monitoring(mode):
     if not checklogin():
         return redirect(f'/login?redirect={request.path}')
@@ -173,15 +172,19 @@ def allow_specific_web():
     return render_template('/services/allow_web_exam.html')
 
 
-@app.route('/network/speedtest', defaults={'mode': None}, methods=['GET'])
-@app.route('/network/speedtest/<mode>', methods=['GET'])
-def route_network(mode):
+@app.route('/network/', defaults={'mode': None}, methods=['GET'])
+@app.route('/network/<mode>/', defaults={'mode2': None}, methods=['GET'])
+@app.route('/network/<mode>/<mode2>', methods=['GET'])
+def route_network(mode, mode2=None):
     if not checklogin():
         return redirect(f'/login?redirect={request.path}')
-    if mode == None:
-        return network_web_speedtest()
-    elif mode == 'api':
-        return network_web_api_speedtest()
+    if mode == 'speedtest':
+        if mode2 == None:
+            return network_web_speedtest()
+        elif mode2 == 'api':
+            return network_web_api_speedtest()
+        else:
+            return jsonify({'error': 'Invalid request method'}), 405
     else:
         return jsonify({'error': 'Invalid request method'}), 405
 
@@ -198,6 +201,7 @@ def network_web_api_speedtest():
     else:
         data = net.run_speedtest_with_netdata(relevant_data, 'all')
     return jsonify(data)
+
 
 
 @app.route('/hotspot', defaults={'mode': None}, methods=['GET','POST'])
@@ -452,6 +456,27 @@ def hotspot_editor(request):
     f_html = codecs.open(app.root_path + "/templates/hotspot/hs_login.html", 'r')
     return render_template('/hotspot/hs_editor.html', data=f_html.read())
 
+@app.route('/system/', defaults={'mode': None}, methods=['GET','POST'])
+@app.route('/system/<mode>/', defaults={'mode2': None}, methods=['GET','POST'])
+# @app.route('/system/<mode>/<mode2>', methods=['GET','POST'])
+def route_system(mode, mode2=None):
+    if not checklogin():
+        return redirect(f'/login?redirect={request.path}')
+    if mode == None:
+        if request.method == 'POST':
+            return system.system(request)
+        return render_template('/network/system.html')
+    elif mode == "reboot":
+        if request.method == 'POST':
+            return system.rebootorshut(request)
+        return render_template('/network/reboot.html')
+    elif mode == "systool_password":
+        if request.method == 'POST':
+            return system.sytem_password(request)
+        return render_template('/network/system_password.html')
+    else:
+        return jsonify({'error': 'Invalid request method'}), 405
+
 
 # cron task
 start_time = [0, 0, 0]
@@ -533,8 +558,11 @@ def login():
         if check_password(password):
             session['authenticated'] = True
             if request.args.get('redirect'):
-                request.args.get('redirect')
-                return redirect(request.args.get('redirect'))
+                asd = request.args.get('redirect')
+                if asd == 'system/reboot':
+                    return redirect(url_for('homepage'))
+                else:
+                    return redirect(request.args.get('redirect'))
             else:
                 return redirect(url_for('homepage'))
         else:
@@ -573,17 +601,10 @@ def api():
     else:
         return jsonify({'error': 'Unauthorized'}), 401    
 
-@app.route('/detect-user-agent')
-def detect_user_agent():
-    # Mendapatkan nilai header User-Agent
-    user_agent = request.headers.get('User-Agent')
-    return jsonify(request.headers.get('User-Agent'))
-    # Melakukan deteksi berdasarkan header User-Agent
-    if 'Mozilla' in user_agent:  # Contoh sederhana, Mozilla sering digunakan oleh browser
-        return "Permintaan berasal dari browser"
-    else:
-        return "Permintaan bukan berasal dari browser"
-
+@app.route('/ping')
+@limiter.limit('60 per minute')
+def ping_server():
+    return jsonify('PONG')
 
 def install():
     print('Checker...')
@@ -599,7 +620,7 @@ def page_not_found(error):
 
 @app.errorhandler(400)
 def page_not_found(error):
-    return render_template('/fe/400.html')
+    return render_template('/fe/400.html', error=error)
 
 @app.errorhandler(429)
 def ratelimit_handler(e):
