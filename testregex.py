@@ -1,35 +1,24 @@
-import threading
-import time
+import socket
 
+def get_ip_addresses(domain):
+    try:
+        ip_addresses = socket.gethostbyname_ex(domain)[-1]
+        return ip_addresses
+    except socket.gaierror:
+        print(f"DNS lookup failed for {domain}")
+        return []
 
-start_time = [0, 0, 0]
-task0 = 5
-task1 = 10
-task2 = 20
-def background_task():
-    while True:
-        # Catat waktu awal eksekusi
-        for Stime in range(len(start_time)):
-            
-            if start_time[Stime] == 0:
-                start_time[Stime] = time.time()
-        
-        if time.time() - start_time[0] > task0:
-            print('task0')
-            start_time[0] = time.time()
+def main():
+    domains = ["facebook.com", "google.com"]  # Ganti dengan daftar domain dan subdomain yang Anda inginkan
 
-        if time.time() - start_time[1] > task1:
-            print('task1')
-            start_time[1] = time.time()
-        
-        if time.time() - start_time[2] > task2:
-            print('task2')
-            start_time[2] = time.time()
+    ip_set = set()
+    for domain in domains:
+        ips = get_ip_addresses(domain)
+        ip_set.update(ips)
 
+    print("List of IP addresses:")
+    for ip in ip_set:
+        print(ip)
 
-background_thread = threading.Thread(target=background_task)
-# Set daemon agar thread berhenti ketika program utama berhenti
-# background_thread.daemon = True
-
-background_thread.start()
-# background_task()
+if __name__ == "__main__":
+    main()
